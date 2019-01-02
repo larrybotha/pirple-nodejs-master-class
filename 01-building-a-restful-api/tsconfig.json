@@ -2,6 +2,16 @@
   "extends": "../tsconfig.json",
   "include": ["src/**/*"],
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es6",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*", "src/types/*"]
+    }
   }
 }
