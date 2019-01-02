@@ -1,0 +1,32 @@
+{
+  "name": "nodejs-master-class",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": "true",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "10.12.18",
+    "concurrently": "4.1.0",
+    "doctoc": "1.4.0",
+    "husky": "1.3.1",
+    "jest": "23.6.0",
+    "jest-runner-eslint": "0.7.1",
+    "jest-runner-tsc": "1.3.2",
+    "jest-runner-tslint": "1.0.5",
+    "lint-staged": "8.1.0",
+    "nodemon": "1.18.9",
+    "tslint-config-prettier": "1.17.0",
+    "typescript": "3.2.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  }
+}

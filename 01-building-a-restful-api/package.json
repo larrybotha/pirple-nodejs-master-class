@@ -1,0 +1,22 @@
+{
+  "name": "01-building-a-restful-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": "true",
+  "scripts": {
+    "start": "concurrently npm:watch:server npm:watch:tsc npm:watch:test",
+    "test": "jest",
+    "tsc": "tsc",
+    "watch:tsc": "npm run tsc -- -w",
+    "watch:test": "npm run test -- --watchAll",
+    "watch:server": "nodemon dist/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "4.1.0",
+    "jest": "23.6.0"
+  }
+}
