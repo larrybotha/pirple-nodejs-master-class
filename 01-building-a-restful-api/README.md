@@ -7,5 +7,6 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ```bash
+$ cd 01-building-a-restful-api
 $ npm start
 ```
