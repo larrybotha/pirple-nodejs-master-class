@@ -8,7 +8,7 @@ dotenv.config();
 
 const port = process.env.PORT || 3000;
 
-interface ResponseData {
+interface RequestData {
   headers: http.IncomingHttpHeaders;
   method: string;
   pathname: string;
@@ -16,13 +16,14 @@ interface ResponseData {
   query?: ParsedUrlQuery;
 }
 
-type HandlerCallback = (statusCode: number, payload?: object) => void;
-type Handler = (data: ResponseData, cb: HandlerCallback) => void;
+type HandlerCallback = (statusCode: number, responseData?: object) => void;
+type Handler = (data: RequestData, cb: HandlerCallback) => void;
 
 const router: {[key: string]: Handler} = {
   notFound: (data, cb) => {
     cb(404);
   },
+
   sample: (data, cb) => {
     cb(406, {name: 'sample handler'});
   },
@@ -56,16 +57,18 @@ const server: http.Server = http.createServer(
         query,
       };
 
-      handler(data, (statusCode = 200, payload = JSON.parse(buffer)) => {
-        const code = statusCode;
+      handler(data, (statusCode = 200, responseData = {}) => {
+        // indicate to clients that the response is json
+        res.setHeader('Content-type', 'application/json');
 
         // set the status code for the request
-        res.writeHead(code);
-        // return the payload as a string
-        res.end(JSON.stringify(payload));
+        res.writeHead(statusCode);
+
+        // return the responseData as a string
+        res.end(JSON.stringify(responseData));
 
         // tslint:disable-next-line
-        console.log('responded with', payload);
+        console.log('responded with', responseData);
       });
     });
   }
