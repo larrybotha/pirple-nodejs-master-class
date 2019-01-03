@@ -51,8 +51,30 @@ myStream.on('data', d => {
 
 myStream.on('end', () => {
   // write any remaining data to the buffer
-  buffer += decoder.end()
+  data += decoder.end()
 
-  // do something with data
+  // do what you want with the data
 })
 ```
+
+## Routing requests
+
+We have all the data in the request by parsing the querystring, getting the
+method, headers, pathname, and payload.
+
+By evaluating the pathname we can call different route handlers, passing in the
+payload from the request, and returning a status code and any data we want to
+send back in the response.
+
+## Returning JSON
+
+One needs to indicate explicitly to the client the type of data being sent back.
+This can be done either by passing headers to `res.writeHead`, or by adding
+individual headers to `res.setHeader`:
+
+```javascript
+res.setHeader('Content-type', 'application/json')
+```
+
+`res.setHeader` needs to come before `res.writeHead`. Headers added via
+`res.setHeader` are aggregated into `res.writeHead`.
