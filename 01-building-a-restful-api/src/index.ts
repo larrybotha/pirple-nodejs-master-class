@@ -2,14 +2,16 @@
  * entry point for API
  */
 
+import * as fs from 'fs';
 import * as http from 'http';
+import * as https from 'https';
 import {ParsedUrlQuery} from 'querystring';
 import {StringDecoder} from 'string_decoder';
 import * as url from 'url';
 
 import config from './config';
 
-const {port} = config;
+const {httpPort, httpsPort, envName} = config;
 
 interface RequestData {
   headers: http.IncomingHttpHeaders;
@@ -32,52 +34,66 @@ const router: {[key: string]: Handler} = {
   },
 };
 
-const server: http.Server = http.createServer(
-  (req: http.IncomingMessage, res: http.ServerResponse) => {
-    const parsedUrl = url.parse(req.url, true);
-    const {headers} = req;
-    const {pathname, query} = parsedUrl;
-    const trimmedPath = pathname.replace(/^\/+|\/$/g, '');
-    const method = req.method.toLowerCase();
-    const decoder = new StringDecoder('utf-8');
-    let buffer = '';
+const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
+  const parsedUrl = url.parse(req.url, true);
+  const {headers} = req;
+  const {pathname, query} = parsedUrl;
+  const trimmedPath = pathname.replace(/^\/+|\/$/g, '');
+  const method = req.method.toLowerCase();
+  const decoder = new StringDecoder('utf-8');
+  let buffer = '';
 
-    req.on('data', data => {
-      buffer += decoder.write(data);
+  req.on('data', data => {
+    buffer += decoder.write(data);
+  });
+
+  req.on('end', () => {
+    // make sure to write any data coming through in the `end` event to our buffer
+    buffer += decoder.end();
+
+    const handler: Handler = router[trimmedPath] || router.notFound;
+
+    const data = {
+      headers,
+      method,
+      pathname: trimmedPath,
+      payload: buffer,
+      query,
+    };
+
+    handler(data, (statusCode = 200, responseData = {}) => {
+      // indicate to clients that the response is json
+      res.setHeader('Content-type', 'application/json');
+
+      // set the status code for the request
+      res.writeHead(statusCode);
+
+      // return the responseData as a string
+      res.end(JSON.stringify(responseData));
+
+      // tslint:disable-next-line
+      console.log('responded with', responseData);
     });
+  });
+};
 
-    req.on('end', () => {
-      // make sure to write any data coming through in the `end` event to our buffer
-      buffer += decoder.end();
+const httpServer: http.Server = http.createServer(unifiedServer);
 
-      const handler: Handler = router[trimmedPath] || router.notFound;
+httpServer.listen(httpPort, () => {
+  // tslint:disable-next-line
+  console.log(`server started at localhost:${httpPort} in ${envName} mode`);
+});
 
-      const data = {
-        headers,
-        method,
-        pathname: trimmedPath,
-        payload: buffer,
-        query,
-      };
-
-      handler(data, (statusCode = 200, responseData = {}) => {
-        // indicate to clients that the response is json
-        res.setHeader('Content-type', 'application/json');
-
-        // set the status code for the request
-        res.writeHead(statusCode);
-
-        // return the responseData as a string
-        res.end(JSON.stringify(responseData));
-
-        // tslint:disable-next-line
-        console.log('responded with', responseData);
-      });
-    });
-  }
+const httpsServerOptions: https.ServerOptions = {
+  cert: fs.readFileSync('./https/cert.pem'),
+  key: fs.readFileSync('./https/key.pem'),
+};
+const httpsServer: https.Server = https.createServer(
+  httpsServerOptions,
+  unifiedServer
 );
 
-server.listen(port, () => {
+httpsServer.listen(httpsPort, () => {
   // tslint:disable-next-line
-  console.log(`server started at localhost:${port} in ${config.envName} mode`);
+  console.log(`server started at localhost:${httpsPort} in ${envName} mode`);
 });
