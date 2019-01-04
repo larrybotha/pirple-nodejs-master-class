@@ -1,12 +1,15 @@
-import * as dotenv from 'dotenv';
+/**
+ * entry point for API
+ */
+
 import * as http from 'http';
 import {ParsedUrlQuery} from 'querystring';
 import {StringDecoder} from 'string_decoder';
 import * as url from 'url';
 
-dotenv.config();
+import config from './config';
 
-const port = process.env.PORT || 3000;
+const {port} = config;
 
 interface RequestData {
   headers: http.IncomingHttpHeaders;
@@ -76,5 +79,5 @@ const server: http.Server = http.createServer(
 
 server.listen(port, () => {
   // tslint:disable-next-line
-  console.log(`server started at localhost:${port}`);
+  console.log(`server started at localhost:${port} in ${config.envName} mode`);
 });
