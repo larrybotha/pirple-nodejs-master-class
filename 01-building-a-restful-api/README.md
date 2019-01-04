@@ -78,3 +78,24 @@ res.setHeader('Content-type', 'application/json')
 
 `res.setHeader` needs to come before `res.writeHead`. Headers added via
 `res.setHeader` are aggregated into `res.writeHead`.
+
+## Generating a key and certificate for HTTPS
+
+```bash
+$ openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
+```
+
+Node's `https.createServer` requires an options object containing at least the
+certificate and key.
+
+These need to be read in using `fs.readFileSync` as we don't want the server to
+start until the files are read in:
+
+```javascript
+const options = {
+  cert: fs.readFileSync('./https/cert.pem'),
+  key: fs.readFileSync('./https/key.pem'),
+}
+
+const httpsServer = https.createServer(options, (req, res) => {...})
+```
