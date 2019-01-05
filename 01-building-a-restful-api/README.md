@@ -9,6 +9,7 @@
 - [Routing requests](#routing-requests)
 - [Returning JSON](#returning-json)
 - [Generating a key and certificate for HTTPS](#generating-a-key-and-certificate-for-https)
+- [`ping` service](#ping-service)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -106,3 +107,9 @@ const options = {
 
 const httpsServer = https.createServer(options, (req, res) => {...})
 ```
+
+## `ping` service
+
+A ping service doesn't do anything except indicate whether the server is alive
+or not. This is generally what is provided to status services for uptime
+monitoring.
