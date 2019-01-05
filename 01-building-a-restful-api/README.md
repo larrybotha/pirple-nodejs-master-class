@@ -4,6 +4,8 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
+- [Homework](#homework)
+  - [01](#01)
 - [Parsing request paths](#parsing-request-paths)
 - [Parsing payloads](#parsing-payloads)
 - [Routing requests](#routing-requests)
@@ -16,6 +18,17 @@
 ```bash
 $ cd 01-building-a-restful-api
 $ npm start
+```
+
+## Homework
+
+### 01
+
+[index.ts](./homework-01/src/index.ts)
+
+```bash
+$ cd 01-building-a-restful-api
+$ npm run start:homework-01
 ```
 
 ## Parsing request paths
