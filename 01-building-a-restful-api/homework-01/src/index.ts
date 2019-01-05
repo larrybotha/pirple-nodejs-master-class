@@ -42,7 +42,7 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
   const {pathname, query} = url.parse(req.url, true);
   const trimmedPathname = pathname.replace(/^\/+|\/$/g, '');
   const routeHandler: RouteHandler = router[trimmedPathname] || router.notFound;
-  const decoder = new StringDecoder('utf-8');
+  const decoder = new StringDecoder('utf8');
   let buffer = '';
 
   req.on('data', data => (buffer += decoder.write(data)));
