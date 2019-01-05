@@ -7,11 +7,13 @@
   "scripts": {
     "prestart": "rm -rf dist && npm run tsc",
     "start": "concurrently npm:watch:server npm:watch:tsc npm:watch:test",
+    "start:homework-01": "concurrently npm:watch:server:homework-01 npm:watch:tsc npm:watch:test",
     "test": "jest",
     "tsc": "tsc",
     "watch:tsc": "npm run tsc -- -w",
     "watch:test": "npm run test -- --watchAll",
-    "watch:server": "nodemon dist/"
+    "watch:server": "nodemon dist/",
+    "watch:server:homework-01": "nodemon dist/homework-01/src"
   },
   "keywords": [],
   "author": "",
