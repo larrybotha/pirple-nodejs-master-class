@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
+import * as path from 'path';
 import {StringDecoder} from 'string_decoder';
 import * as url from 'url';
 
@@ -61,8 +62,8 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
 const httpServer: http.Server = http.createServer(unifiedServer);
 
 const httpsServerOptions: https.ServerOptions = {
-  cert: fs.readFileSync('./https/cert.pem'),
-  key: fs.readFileSync('./https/key.pem'),
+  cert: fs.readFileSync(path.resolve(__dirname, '../../../https/cert.pem')),
+  key: fs.readFileSync(path.resolve(__dirname, '../../../https/key.pem')),
 };
 const httpsServer: https.Server = https.createServer(
   httpsServerOptions,
