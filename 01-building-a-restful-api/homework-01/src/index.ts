@@ -25,7 +25,12 @@ type RouteHandler = (
 };
 
 const router: {[key: string]: RouteHandler} = {
-  hello: data => ({statusCode: 200, responsePayload: {body: 'hi!'}}),
+  hello: data => {
+    const {method, payload} = data;
+    const dataSent = /post/i.test(method) ? {requestData: payload} : {};
+
+    return {statusCode: 200, responsePayload: {body: 'hi!', ...dataSent}};
+  },
   ping: data => ({statusCode: 200}),
 
   notFound: data => ({statusCode: 404}),
@@ -47,7 +52,7 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
 
     const data: IncomingRequestData = {
       headers,
-      method,
+      method: method.toLowerCase(),
       pathname: trimmedPathname,
       payload: buffer,
       query,
