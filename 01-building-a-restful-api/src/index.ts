@@ -29,8 +29,9 @@ const router: {[key: string]: Handler} = {
     cb(404);
   },
 
-  sample: (data, cb) => {
-    cb(406, {name: 'sample handler'});
+  // a ping handler purely for clients to evaluate whether the server is up or not
+  ping: (data, cb) => {
+    cb(200);
   },
 };
 
