@@ -10,6 +10,7 @@ import config from './config';
 const {envName, httpPort, httpsPort} = config;
 
 interface IncomingRequestData {
+  headers: http.IncomingHttpHeaders;
   method: string;
   pathname: string;
   payload: any;
@@ -34,7 +35,7 @@ const router: {[key: string]: RouteHandler} = {
 const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
   const {headers, method} = req;
   const {pathname, query} = url.parse(req.url, true);
-  const trimmedPathname = pathname.replace(/^\/|\/$/g, '');
+  const trimmedPathname = pathname.replace(/^\/+|\/$/g, '');
   const routeHandler: RouteHandler = router[trimmedPathname] || router.notFound;
   const decoder = new StringDecoder('utf-8');
   let buffer = '';
@@ -45,6 +46,7 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
     buffer += decoder.end();
 
     const data: IncomingRequestData = {
+      headers,
       method,
       pathname: trimmedPathname,
       payload: buffer,
@@ -55,6 +57,9 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
     res.setHeader('Content-type', 'application/json');
     res.writeHead(statusCode);
     res.end(JSON.stringify(responsePayload));
+
+    // tslint:disable-next-line
+    console.log('responded with: ', responsePayload);
   });
 };
 
