@@ -3,6 +3,13 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
+
+- [Parsing request paths](#parsing-request-paths)
+- [Parsing payloads](#parsing-payloads)
+- [Routing requests](#routing-requests)
+- [Returning JSON](#returning-json)
+- [Generating a key and certificate for HTTPS](#generating-a-key-and-certificate-for-https)
+
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ```bash
@@ -88,8 +95,8 @@ $ openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out
 Node's `https.createServer` requires an options object containing at least the
 certificate and key.
 
-These need to be read in using `fs.readFileSync` as we don't want the server to
-start until the files are read in:
+These need to be read in using `fs.readFileSync` as the https server can't start
+until it has the required options:
 
 ```javascript
 const options = {
