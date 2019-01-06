@@ -12,7 +12,7 @@
     "tsc": "tsc",
     "watch:tsc": "npm run tsc -- -w",
     "watch:test": "npm run test -- --watchAll",
-    "watch:server": "nodemon dist/",
+    "watch:server": "nodemon dist/src",
     "watch:server:homework-01": "nodemon dist/homework-01/src"
   },
   "keywords": [],
