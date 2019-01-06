@@ -41,7 +41,7 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
   const {pathname, query} = parsedUrl;
   const trimmedPath = pathname.replace(/^\/+|\/$/g, '');
   const method = req.method.toLowerCase();
-  const decoder = new StringDecoder('utf-8');
+  const decoder = new StringDecoder('utf8');
   let buffer = '';
 
   req.on('data', data => {
