@@ -5,35 +5,14 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
-import {ParsedUrlQuery} from 'querystring';
 import {StringDecoder} from 'string_decoder';
 import * as url from 'url';
 
 import config from './config';
+import {Handler, RequestData} from './lib/route-handlers';
+import router from './lib/router';
 
 const {httpPort, httpsPort, envName} = config;
-
-interface RequestData {
-  headers: http.IncomingHttpHeaders;
-  method: string;
-  pathname: string;
-  payload?: string | object;
-  query?: ParsedUrlQuery;
-}
-
-type HandlerCallback = (statusCode: number, responseData?: object) => void;
-type Handler = (data: RequestData, cb: HandlerCallback) => void;
-
-const router: {[key: string]: Handler} = {
-  notFound: (data, cb) => {
-    cb(404);
-  },
-
-  // a ping handler purely for clients to evaluate whether the server is up or not
-  ping: (data, cb) => {
-    cb(200);
-  },
-};
 
 const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
   const parsedUrl = url.parse(req.url, true);
