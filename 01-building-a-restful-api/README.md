@@ -12,6 +12,11 @@
 - [Returning JSON](#returning-json)
 - [Generating a key and certificate for HTTPS](#generating-a-key-and-certificate-for-https)
 - [`ping` service](#ping-service)
+- [Creating, reading, updating, and deleting files](#creating-reading-updating-and-deleting-files)
+  - [Creating files](#creating-files)
+  - [Reading files](#reading-files)
+  - [Updating files](#updating-files)
+  - [Deleting files](#deleting-files)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -126,3 +131,69 @@ const httpsServer = https.createServer(options, (req, res) => {...})
 A ping service doesn't do anything except indicate whether the server is alive
 or not. This is generally what is provided to status services for uptime
 monitoring.
+
+## Creating, reading, updating, and deleting files
+
+Node's `util.promisify` can be used to convert the `(err, result)` callback
+style of many of Node's async functions to Promises, which can then be used with
+`async / await`.
+
+### Creating files
+
+Files that are opened for reading / writing need to be closed so that data is
+not lost, and to de-allocate memory used while they are open.
+
+```javascript
+try {
+  // create file if it doesn't exist, otherwise throw an error
+  const fileDescriptor = await promisify(fs.open)(filename, 'wx');
+
+  // write data to the file
+  await promisify(fs.writeFile)(fileDescriptor, JSON.stringify(data))
+
+  // close file once we're done
+  await promisify(fs.close(fileDescriptor))
+} catch(err) {
+  console.log(err)
+}
+```
+
+### Reading files
+
+```javascript
+try {
+  const result = await promisify(fs.readFile)(filename)
+} catch (err) {
+  console.log(err)
+}
+```
+
+### Updating files
+
+```javascript
+try {
+  // open the file for reading and writing, throwing an error if there's an issue
+  const fileDescriptor = await promisify(fs.open)(filename, 'r+')
+
+  // truncate the contents of the file
+  await promisify(fs.truncate)(filename)
+
+  // write the data to the file
+  await promisify(fs.writeFile)(filename, JSON.stringify(data))
+
+  // close the file
+  await promisify(fs.close)(fileDescriptor)
+} catch (err) {
+  console.log(err)
+}
+```
+
+### Deleting files
+
+```javascript
+try {
+  await promisify(fs.unlink)(filename)
+} catch (err) {
+  console.log(err)
+}
+```
