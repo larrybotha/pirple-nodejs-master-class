@@ -4,17 +4,20 @@
 
 interface Environment {
   envName: string;
+  hashingSecret: string;
   httpPort: number;
   httpsPort: number;
 }
 
 const staging: Environment = {
   envName: 'staging',
+  hashingSecret: 'dev-secret',
   httpPort: 3000,
   httpsPort: 3001,
 };
 const production: Environment = {
   envName: 'production',
+  hashingSecret: 'prod-secret',
   httpPort: 5000,
   httpsPort: 5001,
 };
