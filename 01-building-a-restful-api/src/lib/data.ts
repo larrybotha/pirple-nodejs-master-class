@@ -14,13 +14,8 @@ const baseDir = path.join(__dirname, '../../../.data');
 const getFilePath = (base: string, dir: string, file: string) =>
   path.join(base, dir, `${file}.json`);
 
-type Create = (
-  dir: string,
-  file: string,
-  data: any,
-  callback: (err?: string) => void
-) => void;
-const create: Create = async (dir, file, data, callback) => {
+type Create = (dir: string, file: string, data: any) => void;
+const create: Create = async (dir, file, data) => {
   const filePath = getFilePath(baseDir, dir, file);
 
   try {
@@ -30,34 +25,25 @@ const create: Create = async (dir, file, data, callback) => {
     await asyncWriteFile(fileDescriptor, JSON.stringify(data));
     await asyncClose(fileDescriptor as number);
   } catch (err) {
-    callback(err);
+    throw err;
   }
 };
 
-type Read = (
-  dir: string,
-  file: string,
-  callback: (err?: Error, result?: string) => void
-) => void;
-const read: Read = async (dir, file, callback) => {
+type Read = (dir: string, file: string) => void;
+const read: Read = async (dir, file) => {
   const filePath = getFilePath(baseDir, dir, file);
 
   try {
     const result = await asyncRead(filePath, 'utf8');
 
-    callback(null, result);
+    return result;
   } catch (err) {
-    callback(err);
+    throw err;
   }
 };
 
-type Update = (
-  dir: string,
-  file: string,
-  data: any,
-  callback: (err?: string) => void
-) => void;
-const update: Update = async (dir, file, data, callback) => {
+type Update = (dir: string, file: string, data: any) => void;
+const update: Update = async (dir, file, data) => {
   const filePath = getFilePath(baseDir, dir, file);
 
   try {
@@ -66,22 +52,18 @@ const update: Update = async (dir, file, data, callback) => {
     await asyncWriteFile(filePath, JSON.stringify(data));
     await asyncClose(fileDescriptor as number);
   } catch (err) {
-    callback(err);
+    throw err;
   }
 };
 
-type Delete = (
-  dir: string,
-  file: string,
-  callback: (err: Error) => void
-) => void;
-const deleteFile: Delete = async (dir, file, callback) => {
+type Delete = (dir: string, file: string) => void;
+const deleteFile: Delete = async (dir, file) => {
   const filePath = getFilePath(baseDir, dir, file);
 
   try {
     await asyncUnlink(filePath);
   } catch (err) {
-    callback(err);
+    throw err;
   }
 };
 
