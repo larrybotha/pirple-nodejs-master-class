@@ -11,6 +11,7 @@ import * as url from 'url';
 import config from './config';
 import {Handler, RequestData} from './lib/route-handlers';
 import router from './lib/router';
+import helpers from './lib/helpers';
 
 const {httpPort, httpsPort, envName} = config;
 
@@ -37,7 +38,7 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
       headers,
       method,
       pathname: trimmedPath,
-      payload: buffer,
+      payload: helpers.parseJsonToObject(buffer),
       query,
     };
 
