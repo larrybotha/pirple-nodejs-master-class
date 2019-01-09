@@ -29,7 +29,7 @@ const create: Create = async (dir, file, data) => {
   }
 };
 
-type Read = (dir: string, file: string) => void;
+type Read = (dir: string, file: string) => Promise<string>;
 const read: Read = async (dir, file) => {
   const filePath = getFilePath(baseDir, dir, file);
 
