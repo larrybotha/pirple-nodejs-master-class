@@ -32,8 +32,9 @@ const isOfType: Validator<{types: string[]}> = (
   msg = 'Value is incorrect type',
   {types = []}
 ) => val => {
+  const type = typeof val;
   const validateType = (v: Valid) =>
-    types.indexOf(v) >= -1 ? v : {error: msg};
+    types.indexOf(type) >= -1 ? v : {error: msg};
 
   return isError(val) ? val : validateType(val);
 };
@@ -48,4 +49,13 @@ const minLength: Validator<{length: number}> = (
   return isError(val) ? val : validateMinLength(val);
 };
 
-export {exists, isOfType, minLength, trim};
+const equals: Validator<{value: any}> = (
+  msg = 'This value is incorrect',
+  {value = null}
+) => val => {
+  const validateEqual = (v: Valid) => (v === value ? v : {error: msg});
+
+  return isError(val) ? val : validateEqual(val);
+};
+
+export {equals, exists, isOfType, minLength, trim};
