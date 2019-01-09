@@ -1,9 +1,8 @@
-import {Handler, notFound, ping, users} from './route-handlers';
+import services from './services';
+import {Handler} from './services/types';
 
 const router: {[key: string]: Handler} = {
-  notFound,
-  ping,
-  users,
+  ...services,
 };
 
 export default router;

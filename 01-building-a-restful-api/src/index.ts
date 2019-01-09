@@ -9,9 +9,9 @@ import {StringDecoder} from 'string_decoder';
 import * as url from 'url';
 
 import config from './config';
-import {Handler, RequestData} from './lib/route-handlers';
-import router from './lib/router';
 import helpers from './lib/helpers';
+import router from './lib/router';
+import {Handler, RequestData} from './lib/services/types';
 
 const {httpPort, httpsPort, envName} = config;
 

@@ -1,32 +1,8 @@
-import * as http from 'http';
-import {ParsedUrlQuery} from 'querystring';
+import dataLib from '../data';
+import helpers from '../helpers';
+import {exists, isOfType, minLength, trim} from '../validate';
 
-import dataLib from './data';
-import helpers from './helpers';
-import {exists, isOfType, minLength, trim} from './validate';
-
-export interface RequestData<T> {
-  headers: http.IncomingHttpHeaders;
-  method: string;
-  pathname: string;
-  payload?: T;
-  query?: ParsedUrlQuery;
-}
-
-type HandlerCallback = (statusCode: number, responseData?: object) => void;
-export type Handler<T = any> = (
-  data: RequestData<T>,
-  cb: HandlerCallback
-) => void;
-
-export const notFound: Handler = (data, cb) => {
-  cb(404);
-};
-
-// a ping handler purely for clients to evaluate whether the server is up or not
-export const ping: Handler = (data, cb) => {
-  cb(200);
-};
+import {Handler, RequestData} from './types';
 
 interface UserPostPayload {
   firstName: string;
@@ -73,13 +49,14 @@ const userMethods: UserMethods = {
       .map(trim())
       .find(Boolean);
     const tosAgreement = [payload.tosAgreement]
+      .map(exists('TOS is required'))
       .map(isOfType('Must be boolean', {types: ['boolean']}))
       .find(Boolean);
     const fields = [firstName, lastName, password, phone, tosAgreement];
-    const isValid = fields.every(Boolean);
     const invalidFields = fields.filter(
       field => Boolean(field) && Boolean(field.error)
     );
+    const isValid = invalidFields.length > 0;
 
     if (isValid) {
       try {

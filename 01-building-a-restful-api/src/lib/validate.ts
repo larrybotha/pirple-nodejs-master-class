@@ -42,8 +42,6 @@ const minLength: Validator<{length: number}> = (
   msg = 'This value is not long enough',
   {length = 0}
 ) => val => {
-  console.log(`================length ${val}`);
-
   const validateMinLength = (v: Valid) =>
     v.length >= length ? v : {error: msg};
 
