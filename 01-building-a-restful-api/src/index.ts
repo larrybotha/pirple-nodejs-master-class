@@ -32,7 +32,8 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
     // make sure to write any data coming through in the `end` event to our buffer
     buffer += decoder.end();
 
-    const handler: Handler = router[trimmedPath] || router.notFound;
+    const handler: Handler =
+      router[trimmedPath.split('/').find(Boolean)] || router.notFound;
 
     const data = {
       headers,
