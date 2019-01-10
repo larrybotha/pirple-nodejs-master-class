@@ -72,9 +72,17 @@ const userMethods: UserMethods = {
       const data = await dataLib.read('users', phone);
 
       try {
-        const parsedData = helpers.parseJsonToObject(data);
+        const parsedData: {[key: string]: any} = helpers.parseJsonToObject(
+          data
+        );
+        // don't return entire model
+        // This is a blacklist, but a whitelist could just as easily be used
+        const protectedFields = ['hashedPassword', 'tosAgreement'];
+        const protectedData = Object.keys(parsedData)
+          .filter(key => protectedFields.indexOf(key) === -1)
+          .reduce((acc, key) => ({...acc, [key]: parsedData[key]}), {});
 
-        cb(200, parsedData);
+        cb(200, protectedData);
       } catch (err) {
         cb(500, err);
       }
@@ -133,15 +141,23 @@ const userMethods: UserMethods = {
 
   put: async ({pathname, payload}, cb) => {
     const [_, phone] = pathname.split('/');
+    const permittedFields = ['firstName', 'lastName', 'phone'];
 
     try {
       const data = await dataLib.read('users', phone);
 
       try {
-        const parsedData = helpers.parseJsonToObject(data);
+        const parsedData: {[key: string]: any} = helpers.parseJsonToObject(
+          data
+        );
+        // don't allow just any data to be submitted
+        // This data should be validated, too
+        const permittedData = Object.keys(parsedData)
+          .filter(k => permittedFields.indexOf(k) === -1)
+          .reduce((acc, key) => ({...acc, [key]: parsedData[key]}), {});
         await dataLib.update('users', phone, {
           ...parsedData,
-          ...payload,
+          ...permittedData,
         });
 
         cb(200);
