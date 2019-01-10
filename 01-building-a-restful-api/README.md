@@ -17,6 +17,7 @@
   - [Reading files](#reading-files)
   - [Updating files](#updating-files)
   - [Deleting files](#deleting-files)
+- [Users service](#users-service)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -197,3 +198,17 @@ try {
   console.log(err)
 }
 ```
+
+## Users service
+
+- create allowed methods. Any method that is not allowed should respond with a
+    `405 Method Not Allowed`
+- when POSTing data, if an object already exists, e.g. should the client provide
+    an id which the server uses, return `400 Bad Request`
+- hash passwords before writing to storage
+- use `try / catch` to prevent errors from bringing down the server
+  - this means `JSON.parse` needs to be wrapped
+- when a client retrieves data, define explicitly what data to return, or use a
+    list of protected fields to exclude them from responses
+- when updating data one should specify a list of permitted and required params,
+    and respond accordingly
