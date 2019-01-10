@@ -16,6 +16,7 @@ const hash: Hash = str => {
   }
 };
 
+// parse strings with try / catch because JSON.parse throws errors
 type ParseJsonToObject = (s: string) => object;
 const parseJsonToObject: ParseJsonToObject = str => {
   try {
