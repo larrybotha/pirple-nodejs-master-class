@@ -26,6 +26,11 @@ const parseJsonToObject: ParseJsonToObject = str => {
   }
 };
 
-const helpers = {hash, parseJsonToObject};
+type CreateRandomString = (n: number) => string;
+const createRandomString: CreateRandomString = n => {
+  return `${n}`;
+};
+
+const helpers = {createRandomString, hash, parseJsonToObject};
 
 export default helpers;
