@@ -11,7 +11,7 @@ import * as url from 'url';
 import config from './config';
 import helpers from './lib/helpers';
 import router from './lib/router';
-import {Handler, RequestData} from './lib/services/types';
+import {Handler, RequestData} from './lib/services/utils/types';
 
 const {httpPort, httpsPort, envName} = config;
 
