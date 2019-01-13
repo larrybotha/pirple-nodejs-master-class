@@ -14,7 +14,7 @@ const baseDir = path.join(__dirname, '../../../.data');
 const getFilePath = (base: string, dir: string, file: string) =>
   path.join(base, dir, `${file}.json`);
 
-type Create = (dir: string, file: string, data: any) => void;
+type Create = (dir: string, file: string, data: any) => any;
 const create: Create = async (dir, file, data) => {
   const filePath = getFilePath(baseDir, dir, file);
 
@@ -24,6 +24,8 @@ const create: Create = async (dir, file, data) => {
     const fileDescriptor = await asyncOpen(filePath, 'wx');
     await asyncWriteFile(fileDescriptor, JSON.stringify(data));
     await asyncClose(fileDescriptor as number);
+
+    return data;
   } catch (err) {
     throw err;
   }
@@ -42,7 +44,7 @@ const read: Read = async (dir, file) => {
   }
 };
 
-type Update = (dir: string, file: string, data: any) => void;
+type Update = (dir: string, file: string, data: any) => any;
 const update: Update = async (dir, file, data) => {
   const filePath = getFilePath(baseDir, dir, file);
 
@@ -51,6 +53,8 @@ const update: Update = async (dir, file, data) => {
     await asyncTruncate(filePath);
     await asyncWriteFile(filePath, JSON.stringify(data));
     await asyncClose(fileDescriptor as number);
+
+    return data;
   } catch (err) {
     throw err;
   }
