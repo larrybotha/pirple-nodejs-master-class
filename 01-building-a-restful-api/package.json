@@ -9,9 +9,11 @@
     "start": "concurrently npm:watch:server npm:watch:tsc npm:watch:test",
     "start:homework-01": "concurrently npm:watch:server:homework-01 npm:watch:tsc npm:watch:test",
     "test": "jest",
+    "test:api": "npm test -- -c ./config/tests/jest.newman.js",
     "tsc": "tsc",
     "watch:tsc": "npm run tsc -- -w",
     "watch:test": "npm run test -- --watchAll",
+    "watch:test:api": "npm run test:api -- --watchAll",
     "watch:server": "nodemon dist/src",
     "watch:server:homework-01": "nodemon dist/homework-01/src"
   },
