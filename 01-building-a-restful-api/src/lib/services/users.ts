@@ -2,39 +2,15 @@ import dataLib from '../data';
 import helpers from '../helpers';
 import {equals, exists, isOfType, minLength, trim} from '../validate';
 
-import {Handler, RequestData} from './types';
-
-const validateFirstName = (firstName: string) =>
-  [firstName]
-    .map(exists('First name is required'))
-    .map(isOfType('Must be a string', {types: ['string']}))
-    .map(trim())
-    .find(Boolean);
-const validateLastName = (lastName: string) =>
-  [lastName]
-    .map(exists('Last name is required'))
-    .map(isOfType('Must be a string', {types: ['string']}))
-    .map(trim())
-    .find(Boolean);
-const validatePhone = (phone: string) =>
-  [phone]
-    .map(exists('Phone is required'))
-    .map(isOfType('Must be a string', {types: ['string']}))
-    .map(minLength('Phone must be at least 10 chars', {length: 10}))
-    .map(trim())
-    .find(Boolean);
-const validatePassword = (password: string) =>
-  [password]
-    .map(exists('Password is required'))
-    .map(isOfType('Must be a string', {types: ['string']}))
-    .map(minLength('Password must be at least 8 chars', {length: 8}))
-    .map(trim())
-    .find(Boolean);
-const validateTos = (tos: string) =>
-  [tos]
-    .map(exists('TOS is required'))
-    .map(equals('TOS must be true', {value: 'true'}))
-    .find(Boolean);
+import {createServiceRouter} from './utils/index';
+import {Handler, RequestData} from './utils/types';
+import {
+  validateFirstName,
+  validateLastName,
+  validatePassword,
+  validatePhone,
+  validateTos,
+} from './utils/validations';
 
 interface UserPostPayload {
   firstName: string;
@@ -108,13 +84,13 @@ const userMethods: UserMethods = {
       const hashedPassword = helpers.hash(payload.password);
 
       if (!hashedPassword) {
-        return cb(500, {Error: `Couldn't hash user's password`});
+        return cb(500, {error: `Couldn't hash user's password`});
       }
 
       const userObject = {
         firstName,
-        hashedPassword,
         lastName,
+        password: hashedPassword,
         phone,
         tosAgreement,
       };
@@ -123,19 +99,22 @@ const userMethods: UserMethods = {
         // make sure user doens't exist
         await dataLib.read('users', phone);
 
-        cb(400, {Error: 'User exists'});
+        cb(400, {error: 'User exists'});
         // if it errors, create the file
       } catch (err) {
         try {
-          await dataLib.create('users', phone as any, userObject);
+          const {
+            password: privatePassword,
+            ...responseObject
+          } = await dataLib.create('users', phone as any, userObject);
 
-          cb(201);
+          cb(201, responseObject);
         } catch (err) {
           cb(500, err);
         }
       }
     } else {
-      cb(400, {Error: `invalid fields: ${JSON.stringify(invalidFields)}`});
+      cb(400, {error: `invalid fields: ${JSON.stringify(invalidFields)}`});
     }
   },
 
@@ -152,15 +131,18 @@ const userMethods: UserMethods = {
         );
         // don't allow just any data to be submitted
         // This data should be validated, too
-        const permittedData = Object.keys(parsedData)
-          .filter(k => permittedFields.indexOf(k) === -1)
-          .reduce((acc, key) => ({...acc, [key]: parsedData[key]}), {});
-        await dataLib.update('users', phone, {
+        const permittedData = Object.keys(payload)
+          .filter(k => permittedFields.indexOf(k) > -1)
+          .reduce((acc, key) => ({...acc, [key]: payload[key]}), {});
+        const {
+          password: privatePassword,
+          ...responseData
+        } = await dataLib.update('users', phone, {
           ...parsedData,
           ...permittedData,
         });
 
-        cb(200);
+        cb(200, responseData);
       } catch (err) {
         cb(500, err);
       }
@@ -170,13 +152,7 @@ const userMethods: UserMethods = {
   },
 };
 
-export const users: Handler = (data, cb) => {
-  const allowedMethods = ['get', 'put', 'post', 'delete'];
+const allowedMethods = ['get', 'put', 'post', 'delete'];
+const users = createServiceRouter(allowedMethods, userMethods);
 
-  if (allowedMethods.indexOf(data.method) > -1) {
-    userMethods[data.method](data, cb);
-  } else {
-    // indicate that method is not allowed
-    cb(405);
-  }
-};
+export {users};
