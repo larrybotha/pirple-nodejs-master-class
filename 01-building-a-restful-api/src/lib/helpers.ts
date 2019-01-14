@@ -27,8 +27,23 @@ const parseJsonToObject: ParseJsonToObject = str => {
 };
 
 type CreateRandomString = (n: number) => string;
-const createRandomString: CreateRandomString = n => {
-  return `${n}`;
+const createRandomString: CreateRandomString = (n = 0) => {
+  if (n > 0) {
+    const possibleChars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+
+    return Array(n)
+      .fill(undefined)
+      .map(() => {
+        const randomChar = possibleChars.charAt(
+          Math.floor(Math.random() * possibleChars.length)
+        );
+
+        return randomChar;
+      })
+      .join('');
+  } else {
+    return '';
+  }
 };
 
 const helpers = {createRandomString, hash, parseJsonToObject};
