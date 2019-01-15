@@ -2,8 +2,8 @@ import dataLib from '../data';
 import helpers from '../helpers';
 import {exists} from '../validate';
 import {Handler, RequestData} from './utils/types';
-import {validatePassword, validatePhone} from './utils/validations';
 import {createServiceRouter} from './utils/index';
+import {validatePassword, validatePhone} from './utils/validations';
 
 interface TokenPostPayload {
   password: string;
@@ -13,7 +13,6 @@ interface TokenPostPayload {
 interface TokenDeletePayload {
   id: string;
 }
-
 interface TokenGetPayload {
   id: string;
 }
@@ -27,6 +26,10 @@ interface TokenMethods {
 }
 
 const tokenMethods: {[key: string]: Handler} = {
+  /*
+   * required: id
+   * optional: none
+   */
   delete: async ({pathname}, cb) => {
     const [, tokenId] = pathname.split('/');
     const id = [tokenId].map(exists('id is required')).find(Boolean);
@@ -37,6 +40,8 @@ const tokenMethods: {[key: string]: Handler} = {
     if (!invalidFields.length) {
       try {
         const rawTokenData: string = await dataLib.read('tokens', id);
+
+        await dataLib.delete('tokens', id);
 
         cb(200);
       } catch (e) {
@@ -119,6 +124,10 @@ const tokenMethods: {[key: string]: Handler} = {
     }
   },
 
+  /*
+   * required: id
+   * optional: none
+   */
   put: async (data, cb) => {},
 };
 
