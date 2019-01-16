@@ -130,11 +130,12 @@ const tokenMethods: {[key: string]: Handler} = {
   put: async ({pathname, payload}, cb) => {
     const [_, tokenId] = pathname.split('/');
     const extend = [payload.extend]
-      .map(exists('TOS is required'))
-      .map(equals('TOS must be true', {value: 'true'}))
+      .map(exists('extend is required'))
+      .map(equals('extend must be true', {value: 'true'}))
       .find(Boolean);
+    console.log(extend);
 
-    if (tokenId && extend) {
+    if (tokenId && !extend.error) {
       try {
         const tokenData: {expires: number} = await dataLib.read(
           'tokens',
