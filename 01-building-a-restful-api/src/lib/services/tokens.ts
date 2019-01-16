@@ -62,8 +62,7 @@ const tokenMethods: {[key: string]: Handler} = {
 
     if (!invalidFields.length) {
       try {
-        const rawTokenData: string = await dataLib.read('tokens', id);
-        const tokenData = helpers.parseJsonToObject(rawTokenData);
+        const tokenData = await dataLib.read('tokens', id);
 
         cb(200, tokenData);
       } catch (err) {
