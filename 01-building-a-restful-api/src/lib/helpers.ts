@@ -17,7 +17,7 @@ const hash: Hash = str => {
 };
 
 // parse strings with try / catch because JSON.parse throws errors
-type ParseJsonToObject = (s: string) => object;
+type ParseJsonToObject = (s: string) => any;
 const parseJsonToObject: ParseJsonToObject = str => {
   try {
     return JSON.parse(str);
@@ -47,5 +47,7 @@ const createRandomString: CreateRandomString = (n = 0) => {
 };
 
 const helpers = {createRandomString, hash, parseJsonToObject};
+
+export {createRandomString, hash, parseJsonToObject};
 
 export default helpers;
