@@ -1,8 +1,8 @@
 import dataLib from '../data';
 import helpers from '../helpers';
-import {exists} from '../validate';
-import {Handler, RequestData} from './utils/types';
+import {equals, exists} from '../validate';
 import {createServiceRouter} from './utils/index';
+import {Handler, RequestData} from './utils/types';
 import {validatePassword, validatePhone} from './utils/validations';
 
 interface TokenPostPayload {
@@ -10,18 +10,15 @@ interface TokenPostPayload {
   phone: string;
 }
 
-interface TokenDeletePayload {
-  id: string;
-}
-interface TokenGetPayload {
-  id: string;
+interface TokenPutPayload {
+  extend: boolean;
 }
 
 interface TokenMethods {
-  delete: Handler<TokenDeletePayload>;
-  get: Handler<TokenGetPayload>;
+  delete: Handler;
+  get: Handler;
   post: Handler<TokenPostPayload>;
-  put: Handler;
+  put: Handler<TokenPutPayload>;
   [key: string]: any;
 }
 
@@ -92,8 +89,7 @@ const tokenMethods: {[key: string]: Handler} = {
 
     if (isValid) {
       try {
-        const rawUser: string = await dataLib.read('users', phone);
-        const user: any = helpers.parseJsonToObject(rawUser);
+        const user = await dataLib.read('users', phone);
 
         const hashedPassword = helpers.hash(payload.password);
 
@@ -125,10 +121,58 @@ const tokenMethods: {[key: string]: Handler} = {
   },
 
   /*
-   * required: id
+   * required: id, extend
    * optional: none
+   *
+   * We don't want users to define the time that they can extend the expiration of a
+   * token, but we do want to extend it, so 'extend' is the only data that PUt expects
    */
-  put: async (data, cb) => {},
+  put: async ({pathname, payload}, cb) => {
+    const [_, tokenId] = pathname.split('/');
+    const extend = [payload.extend]
+      .map(exists('TOS is required'))
+      .map(equals('TOS must be true', {value: 'true'}))
+      .find(Boolean);
+
+    if (tokenId && extend) {
+      try {
+        const tokenData: {expires: number} = await dataLib.read(
+          'tokens',
+          tokenId
+        );
+
+        if (tokenData.expires > Date.now()) {
+          const newTokenData = {
+            ...tokenData,
+            expires: Date.now() + 1000 * 60 * 60,
+          };
+
+          try {
+            const newData = await dataLib.update(
+              'tokens',
+              tokenId,
+              newTokenData
+            );
+
+            cb(200, newData);
+          } catch (err) {
+            cb(500, err);
+          }
+        } else {
+          cb(400, {errors: [`Token expired and can't be renewed`]});
+        }
+      } catch (err) {
+        cb(404, err);
+      }
+    } else {
+      cb(400, {
+        errors: [
+          !tokenId ? {error: 'tokenId is required'} : null,
+          extend,
+        ].filter(Boolean),
+      });
+    }
+  },
 };
 
 const allowedMethods = ['get', 'put', 'post', 'delete'];
