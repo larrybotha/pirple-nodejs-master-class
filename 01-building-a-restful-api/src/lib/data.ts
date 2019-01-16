@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {promisify} from 'util';
 
+import {parseJsonToObject} from './helpers';
+
 const asyncClose = promisify(fs.close);
 const asyncOpen = promisify(fs.open);
 const asyncRead = promisify(fs.readFile);
@@ -14,7 +16,7 @@ const baseDir = path.join(__dirname, '../../../.data');
 const getFilePath = (base: string, dir: string, file: string) =>
   path.join(base, dir, `${file}.json`);
 
-type Create = (dir: string, file: string, data: any) => any;
+type Create = (dir: string, file: string, data: any) => Promise<any>;
 const create: Create = async (dir, file, data) => {
   const filePath = getFilePath(baseDir, dir, file);
 
@@ -31,20 +33,20 @@ const create: Create = async (dir, file, data) => {
   }
 };
 
-type Read = (dir: string, file: string) => Promise<string>;
+type Read = (dir: string, file: string) => Promise<any>;
 const read: Read = async (dir, file) => {
   const filePath = getFilePath(baseDir, dir, file);
 
   try {
     const result = await asyncRead(filePath, 'utf8');
 
-    return result;
+    return parseJsonToObject(result);
   } catch (err) {
     throw err;
   }
 };
 
-type Update = (dir: string, file: string, data: any) => any;
+type Update = (dir: string, file: string, data: any) => Promise<any>;
 const update: Update = async (dir, file, data) => {
   const filePath = getFilePath(baseDir, dir, file);
 
@@ -60,7 +62,7 @@ const update: Update = async (dir, file, data) => {
   }
 };
 
-type Delete = (dir: string, file: string) => void;
+type Delete = (dir: string, file: string) => Promise<void>;
 const deleteFile: Delete = async (dir, file) => {
   const filePath = getFilePath(baseDir, dir, file);
 
