@@ -1,3 +1,5 @@
+import * as http from 'http';
+
 import dataLib from '../data';
 import helpers from '../helpers';
 import {equals, exists} from '../validate';
@@ -26,6 +28,8 @@ const tokenMethods: {[key: string]: Handler} = {
   /*
    * required: id
    * optional: none
+   *
+   * only authenticated users may delete a token
    */
   delete: async ({pathname}, cb) => {
     const [, tokenId] = pathname.split('/');
@@ -52,8 +56,10 @@ const tokenMethods: {[key: string]: Handler} = {
   /*
    * required data: ud
    * optional data: none
+   *
+   * only authenticated users may delete a token
    */
-  get: async ({pathname}, cb) => {
+  get: async ({headers, pathname}, cb) => {
     const [, tokenId] = pathname.split('/');
     const id = [tokenId].map(exists('id is required')).find(Boolean);
     const invalidFields = [id].filter(
@@ -76,6 +82,8 @@ const tokenMethods: {[key: string]: Handler} = {
   /*
    * required data: phone, password
    * optional data: none
+   *
+   * only authenticated users may create a token
    */
   post: async ({payload}, cb) => {
     const phone = validatePhone(payload.phone);
@@ -125,6 +133,8 @@ const tokenMethods: {[key: string]: Handler} = {
    *
    * We don't want users to define the time that they can extend the expiration of a
    * token, but we do want to extend it, so 'extend' is the only data that PUt expects
+   *
+   * only authenticated users may create a token
    */
   put: async ({pathname, payload}, cb) => {
     const [_, tokenId] = pathname.split('/');
@@ -172,6 +182,47 @@ const tokenMethods: {[key: string]: Handler} = {
       });
     }
   },
+};
+
+// verify if a given token id is valid for the current user
+interface TokenValidation {
+  code?: number;
+  msg?: string;
+  valid: boolean;
+}
+type ValidateToken = (
+  {headers, phone}: {headers: http.IncomingHttpHeaders; phone: string}
+) => TokenValidation;
+const validateToken: ValidateToken = async ({headers, phone}) => {
+  const {token} = headers;
+
+  if (!token) {
+    return {valid: false, msg: 'Missing token header'};
+  }
+
+  try {
+    const tokenData = await dataLib.read('tokens', token);
+    const validPhone =
+      phone === tokenData.phone
+        ? {valid: true}
+        : {
+            valid: false,
+            msg: 'phone provided does not match token data',
+            code: 400,
+          };
+    const notExpired =
+      Date.now() < tokenData.expires
+        ? {valid: true}
+        : {valid: false, msg: 'token expired', code: 400};
+
+    const invalidation = [validPhone, notExpired].find(
+      ({valid}) => !Boolean(valid)
+    );
+
+    return invalidation ? invalidation : {valid: true};
+  } catch (err) {
+    return {valid: false, msg: err, code: 500};
+  }
 };
 
 const allowedMethods = ['get', 'put', 'post', 'delete'];
