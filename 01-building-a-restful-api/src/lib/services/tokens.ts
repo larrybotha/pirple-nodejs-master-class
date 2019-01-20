@@ -7,17 +7,64 @@ import {createServiceRouter} from './utils/index';
 import {Handler, RequestData} from './utils/types';
 import {validatePassword, validatePhone} from './utils/validations';
 
+// verify if a given token id is valid for the current user
+interface TokenValidation {
+  code?: number;
+  msg?: string;
+  verified: boolean;
+}
+type VerifyToken = (
+  {headers, phone}: {headers: http.IncomingHttpHeaders; phone: string}
+) => Promise<TokenValidation>;
+// tokens are generally sent via request headers
+const verifyToken: VerifyToken = async ({headers, phone}) => {
+  const {token} = headers;
+
+  if (typeof token !== 'string' || !token) {
+    return {verified: false, msg: 'invalid token', code: 403};
+  }
+
+  try {
+    const tokenData = await dataLib.read('tokens', token);
+    const validPhone =
+      phone === tokenData.phone
+        ? {verified: true}
+        : {
+            code: 403,
+            msg: 'invalid token',
+            verified: false,
+          };
+    const notExpired =
+      Date.now() < tokenData.expires
+        ? {verified: true}
+        : {verified: false, msg: 'token expired', code: 403};
+
+    const invalidation = [validPhone, notExpired].find(
+      ({verified}) => !Boolean(verified)
+    );
+
+    return invalidation ? invalidation : {verified: true};
+  } catch (err) {
+    return {verified: false, msg: err, code: 500};
+  }
+};
+
 interface TokenPostPayload {
   password: string;
   phone: string;
 }
 
 interface TokenPutPayload {
+  phone: string;
   extend: boolean;
 }
 
+interface TokenDeletePayload {
+  phone: string;
+}
+
 interface TokenMethods {
-  delete: Handler;
+  delete: Handler<TokenDeletePayload>;
   get: Handler;
   post: Handler<TokenPostPayload>;
   put: Handler<TokenPutPayload>;
@@ -31,7 +78,19 @@ const tokenMethods: {[key: string]: Handler} = {
    *
    * only authenticated users may delete a token
    */
-  delete: async ({pathname}, cb) => {
+  delete: async ({headers, pathname, query}, cb) => {
+    const {phone: phoneQuery} = query;
+    const phone = typeof phoneQuery === 'string' ? phoneQuery : phoneQuery[0];
+
+    const {verified, msg, code} = await verifyToken({
+      headers,
+      phone,
+    });
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
     const [, tokenId] = pathname.split('/');
     const id = [tokenId].map(exists('id is required')).find(Boolean);
     const invalidFields = [id].filter(
@@ -54,28 +113,32 @@ const tokenMethods: {[key: string]: Handler} = {
   },
 
   /*
-   * required data: ud
+   * required data: id, phone
    * optional data: none
    *
-   * only authenticated users may delete a token
+   * only authenticated users may get a token
    */
-  get: async ({headers, pathname}, cb) => {
-    const [, tokenId] = pathname.split('/');
-    const id = [tokenId].map(exists('id is required')).find(Boolean);
-    const invalidFields = [id].filter(
-      field => Boolean(field) && Boolean(field.error)
-    );
+  get: async ({headers, pathname, query}, cb) => {
+    const {phone: phoneQuery} = query;
+    const phone = typeof phoneQuery === 'string' ? phoneQuery : phoneQuery[0];
 
-    if (!invalidFields.length) {
-      try {
-        const tokenData = await dataLib.read('tokens', id);
+    const {verified, msg, code} = await verifyToken({headers, phone});
 
-        cb(200, tokenData);
-      } catch (err) {
-        cb(404, err);
-      }
-    } else {
-      cb(400, {errors: invalidFields});
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
+    const {token} = headers;
+
+    try {
+      const tokenData = await dataLib.read(
+        'tokens',
+        typeof token === 'string' ? token : token[0]
+      );
+
+      cb(200, tokenData);
+    } catch (err) {
+      cb(404, err);
     }
   },
 
@@ -136,8 +199,21 @@ const tokenMethods: {[key: string]: Handler} = {
    *
    * only authenticated users may create a token
    */
-  put: async ({pathname, payload}, cb) => {
+  put: async ({headers, pathname, payload, query}, cb) => {
+    const {phone: phoneQuery} = query;
+    const phone = typeof phoneQuery === 'string' ? phoneQuery : phoneQuery[0];
+
+    const {verified, msg, code} = await verifyToken({
+      headers,
+      phone,
+    });
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
     const [_, tokenId] = pathname.split('/');
+
     const extend = [payload.extend]
       .map(exists('extend is required'))
       .map(equals('extend must be true', {value: 'true'}))
@@ -182,47 +258,6 @@ const tokenMethods: {[key: string]: Handler} = {
       });
     }
   },
-};
-
-// verify if a given token id is valid for the current user
-interface TokenValidation {
-  code?: number;
-  msg?: string;
-  valid: boolean;
-}
-type ValidateToken = (
-  {headers, phone}: {headers: http.IncomingHttpHeaders; phone: string}
-) => TokenValidation;
-const validateToken: ValidateToken = async ({headers, phone}) => {
-  const {token} = headers;
-
-  if (!token) {
-    return {valid: false, msg: 'Missing token header'};
-  }
-
-  try {
-    const tokenData = await dataLib.read('tokens', token);
-    const validPhone =
-      phone === tokenData.phone
-        ? {valid: true}
-        : {
-            valid: false,
-            msg: 'phone provided does not match token data',
-            code: 400,
-          };
-    const notExpired =
-      Date.now() < tokenData.expires
-        ? {valid: true}
-        : {valid: false, msg: 'token expired', code: 400};
-
-    const invalidation = [validPhone, notExpired].find(
-      ({valid}) => !Boolean(valid)
-    );
-
-    return invalidation ? invalidation : {valid: true};
-  } catch (err) {
-    return {valid: false, msg: err, code: 500};
-  }
 };
 
 const allowedMethods = ['get', 'put', 'post', 'delete'];
