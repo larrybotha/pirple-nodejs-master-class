@@ -18,6 +18,7 @@
   - [Updating files](#updating-files)
   - [Deleting files](#deleting-files)
 - [Users service](#users-service)
+- [Tokens service](#tokens-service)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -212,3 +213,13 @@ try {
     list of protected fields to exclude them from responses
 - when updating data one should specify a list of permitted and required params,
     and respond accordingly
+
+## Tokens service
+
+- define allowed methods, return `405` when request's method is not allowed
+- tokens are sent via headers
+- phone number and token pair are used to verify the token, so we send the phone
+    number via a query param
+- `GET`, `PUT`, `DELETE` should only be available to users who already have a
+    token. Existence and verification of the token happens before the request is
+    processed any further
