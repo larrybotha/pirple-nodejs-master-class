@@ -7,6 +7,12 @@ interface Environment {
   hashingSecret: string;
   httpPort: number;
   httpsPort: number;
+
+  services: {
+    checks: {
+      maxChecks: number;
+    };
+  };
 }
 
 const staging: Environment = {
@@ -14,12 +20,24 @@ const staging: Environment = {
   hashingSecret: 'dev-secret',
   httpPort: 3000,
   httpsPort: 3001,
+
+  services: {
+    checks: {
+      maxChecks: 5,
+    },
+  },
 };
 const production: Environment = {
   envName: 'production',
   hashingSecret: 'prod-secret',
   httpPort: 5000,
   httpsPort: 5001,
+
+  services: {
+    checks: {
+      maxChecks: 5,
+    },
+  },
 };
 
 const environments: {[key: string]: Environment} = {
