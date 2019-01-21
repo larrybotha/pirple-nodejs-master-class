@@ -1,9 +1,9 @@
-type Valid = any;
-interface Invalid {
+export type Valid = any;
+export interface Invalid {
   error: string;
 }
 
-type Validator<O = {[key: string]: any}, T = Valid | Invalid> = (
+export type Validator<O = {[key: string]: any}, T = Valid | Invalid> = (
   msg?: string,
   options?: O
 ) => (val: Valid | Invalid) => T extends Invalid ? Invalid[] : Valid | Invalid;
