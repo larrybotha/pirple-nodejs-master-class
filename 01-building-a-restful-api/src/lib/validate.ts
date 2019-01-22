@@ -28,6 +28,13 @@ const trim: Validator = () => val => {
   return isError(val) ? val : trimValue(val);
 };
 
+const oneOf: Validator<any[]> = (msg = 'Does not match', options) => val => {
+  const validateIsOneOf = (v: Valid) =>
+    options.indexOf(v) >= -1 ? v : {error: msg};
+
+  return isError(val) ? val : validateIsOneOf(val);
+};
+
 const isOfType: Validator<{types: string[]}> = (
   msg = 'Value is incorrect type',
   {types = []}
@@ -37,6 +44,16 @@ const isOfType: Validator<{types: string[]}> = (
     types.indexOf(type) >= -1 ? v : {error: msg};
 
   return isError(val) ? val : validateType(val);
+};
+
+const isInstanceOf: Validator<any> = (
+  msg = 'Value is incorrect instance',
+  instance
+) => val => {
+  const validateInstance = (v: Valid) =>
+    v instanceof instance ? v : {error: msg};
+
+  return isError(val) ? val : validateInstance(val);
 };
 
 const minLength: Validator<{length: number}> = (
@@ -58,4 +75,4 @@ const equals: Validator<{value: any}> = (
   return isError(val) ? val : validateEqual(val);
 };
 
-export {equals, exists, isOfType, minLength, trim};
+export {equals, exists, isInstanceOf, isOfType, minLength, oneOf, trim};
