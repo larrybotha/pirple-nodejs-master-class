@@ -53,7 +53,7 @@ const checksMethods: ChecksMethods = {
    * required data: protocol url method successCodes timeoutSeconds
    * optional data: none
    */
-  post: ({payload}) => {
+  post: ({payload}, cb) => {
     const protocol = [payload.protocol]
       .map(exists('protocol is required'))
       .map(
@@ -84,6 +84,23 @@ const checksMethods: ChecksMethods = {
       .map(exists('timeoutSeconds is required'))
       .map(isOfType('Must be a number', {types: ['number']}))
       .find(Boolean);
+    const invalidFields = [
+      protocol,
+      url,
+      method,
+      successCodes,
+      timeoutSeconds,
+    ].filter(
+      (field: Valid | Invalid) => Boolean(field) && Boolean(field.error)
+    );
+
+    if (!invalidFields.length) {
+      // get token using header data
+      // get user data by phone in token data
+      // evaluate if the user can create any more checks
+    } else {
+      cb(400, {errors: invalidFields});
+    }
   },
 
   put: () => {},
