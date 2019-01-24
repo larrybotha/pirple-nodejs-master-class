@@ -6,48 +6,7 @@ import {equals, exists} from '../validate';
 import {createServiceRouter} from './utils/index';
 import {Handler, RequestData} from './utils/types';
 import {validatePassword, validatePhone} from './utils/validations';
-
-// verify if a given token id is valid for the current user
-interface TokenValidation {
-  code?: number;
-  msg?: string;
-  verified: boolean;
-}
-type VerifyToken = (
-  {headers, phone}: {headers: http.IncomingHttpHeaders; phone: string}
-) => Promise<TokenValidation>;
-// tokens are generally sent via request headers
-const verifyToken: VerifyToken = async ({headers, phone}) => {
-  const {token} = headers;
-
-  if (typeof token !== 'string' || !token) {
-    return {verified: false, msg: 'invalid token', code: 403};
-  }
-
-  try {
-    const tokenData = await dataLib.read('tokens', token);
-    const validPhone =
-      phone === tokenData.phone
-        ? {verified: true}
-        : {
-            code: 403,
-            msg: 'invalid token',
-            verified: false,
-          };
-    const notExpired =
-      Date.now() < tokenData.expires
-        ? {verified: true}
-        : {verified: false, msg: 'token expired', code: 403};
-
-    const invalidation = [validPhone, notExpired].find(
-      ({verified}) => !Boolean(verified)
-    );
-
-    return invalidation ? invalidation : {verified: true};
-  } catch (err) {
-    return {verified: false, msg: err, code: 500};
-  }
-};
+import {verifyToken} from './verify-token';
 
 interface TokenPostPayload {
   password: string;
@@ -78,14 +37,8 @@ const tokenMethods: {[key: string]: Handler} = {
    *
    * only authenticated users may delete a token
    */
-  delete: async ({headers, pathname, query}, cb) => {
-    const {phone: phoneQuery} = query;
-    const phone = typeof phoneQuery === 'string' ? phoneQuery : phoneQuery[0];
-
-    const {verified, msg, code} = await verifyToken({
-      headers,
-      phone,
-    });
+  delete: async ({headers, pathname}, cb) => {
+    const {verified, msg, code} = await verifyToken(headers);
 
     if (!verified) {
       return cb(code, {error: msg});
@@ -118,17 +71,18 @@ const tokenMethods: {[key: string]: Handler} = {
    *
    * only authenticated users may get a token
    */
-  get: async ({headers, pathname, query}, cb) => {
-    const {phone: phoneQuery} = query;
-    const phone = typeof phoneQuery === 'string' ? phoneQuery : phoneQuery[0];
-
-    const {verified, msg, code} = await verifyToken({headers, phone});
+  get: async ({headers, pathname}, cb) => {
+    const {verified, msg, code} = await verifyToken(headers);
 
     if (!verified) {
       return cb(code, {error: msg});
     }
 
-    const {token} = headers;
+    const [_, token] = pathname.split('/');
+
+    if (token !== headers.token) {
+      return cb(403, {error: 'You do not have access to this resource'});
+    }
 
     try {
       const tokenData = await dataLib.read(
@@ -201,12 +155,8 @@ const tokenMethods: {[key: string]: Handler} = {
    */
   put: async ({headers, pathname, payload, query}, cb) => {
     const {phone: phoneQuery} = query;
-    const phone = typeof phoneQuery === 'string' ? phoneQuery : phoneQuery[0];
 
-    const {verified, msg, code} = await verifyToken({
-      headers,
-      phone,
-    });
+    const {verified, msg, code} = await verifyToken(headers);
 
     if (!verified) {
       return cb(code, {error: msg});
