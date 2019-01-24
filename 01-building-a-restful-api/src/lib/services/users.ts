@@ -20,9 +20,18 @@ interface UserPostPayload {
   tosAgreement: string;
 }
 
+interface UserPatchPayload {
+  firstName?: string;
+  lastName?: string;
+  password?: string;
+  phone?: string;
+  [key: string]: any;
+}
+
 interface UserMethods {
   delete: Handler;
   get: Handler;
+  patch: Handler<UserPatchPayload>;
   post: Handler<UserPostPayload>;
   put: Handler;
   [key: string]: any;
@@ -48,17 +57,13 @@ const userMethods: UserMethods = {
       const data = await dataLib.read('users', phone);
 
       try {
-        const parsedData: {[key: string]: any} = helpers.parseJsonToObject(
-          data
-        );
-        // don't return entire model
-        // This is a blacklist, but a whitelist could just as easily be used
-        const protectedFields = ['hashedPassword', 'tosAgreement'];
-        const protectedData = Object.keys(parsedData)
-          .filter(key => protectedFields.indexOf(key) === -1)
-          .reduce((acc, key) => ({...acc, [key]: parsedData[key]}), {});
+        // return only permitted fields
+        const permittedFields = ['firstName', 'lastName', 'phone'];
+        const permittedData = permittedFields
+          .map(field => ({[field]: data[field]}))
+          .reduce((acc, obj) => ({...acc, ...obj}), {});
 
-        cb(200, protectedData);
+        cb(200, permittedData);
       } catch (err) {
         cb(500, err);
       }
@@ -96,7 +101,7 @@ const userMethods: UserMethods = {
       };
 
       try {
-        // make sure user doens't exist
+        // make sure user doesn't exist
         await dataLib.read('users', phone);
 
         cb(400, {error: 'User exists'});
@@ -118,6 +123,32 @@ const userMethods: UserMethods = {
     }
   },
 
+  patch: async ({pathname, payload}, cb) => {
+    const [_, phone] = pathname.split('/');
+
+    try {
+      await dataLib.read('users', phone);
+
+      try {
+        const permittedFields = ['firstName', 'lastName', 'phone'];
+        const permittedData = permittedFields
+          .map(field => (payload[field] ? {[field]: payload[field]} : false))
+          .filter(Boolean)
+          .reduce((acc, obj) => ({...acc, ...obj}), {});
+        const result = await dataLib.patch('users', phone, permittedData);
+        const permittedResponse = permittedFields
+          .map(field => ({[field]: result[field]}))
+          .reduce((acc, obj) => ({...acc, ...obj}), {});
+
+        cb(200, permittedResponse);
+      } catch (err) {
+        cb(500, err);
+      }
+    } catch (err) {
+      cb(404, err);
+    }
+  },
+
   put: async ({pathname, payload}, cb) => {
     const [_, phone] = pathname.split('/');
     const permittedFields = ['firstName', 'lastName', 'phone'];
@@ -126,23 +157,18 @@ const userMethods: UserMethods = {
       const data = await dataLib.read('users', phone);
 
       try {
-        const parsedData: {[key: string]: any} = helpers.parseJsonToObject(
-          data
-        );
-        // don't allow just any data to be submitted
-        // This data should be validated, too
-        const permittedData = Object.keys(payload)
-          .filter(k => permittedFields.indexOf(k) > -1)
-          .reduce((acc, key) => ({...acc, [key]: payload[key]}), {});
-        const {
-          password: privatePassword,
-          ...responseData
-        } = await dataLib.update('users', phone, {
-          ...parsedData,
+        const permittedData = permittedFields
+          .map(field => ({[field]: payload[field]}))
+          .reduce((acc, obj) => ({...acc, ...obj}), {});
+        const result = await dataLib.update('users', phone, {
+          ...data,
           ...permittedData,
         });
+        const permittedResponse = permittedFields
+          .map(field => ({[field]: result[field]}))
+          .reduce((acc, obj) => ({...acc, ...obj}), {});
 
-        cb(200, responseData);
+        cb(200, permittedResponse);
       } catch (err) {
         cb(500, err);
       }
@@ -152,7 +178,7 @@ const userMethods: UserMethods = {
   },
 };
 
-const allowedMethods = ['get', 'put', 'post', 'delete'];
+const allowedMethods = ['get', 'patch', 'put', 'post', 'delete'];
 const users = createServiceRouter(allowedMethods, userMethods);
 
 export {users};
