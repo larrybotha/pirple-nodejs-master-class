@@ -62,6 +62,24 @@ const update: Update = async (dir, file, data) => {
   }
 };
 
+type Patch = (dir: string, file: string, data: any) => Promise<any>;
+const patch: Patch = async (dir, file, data) => {
+  const filePath = getFilePath(baseDir, dir, file);
+
+  try {
+    const fileDescriptor = await asyncOpen(filePath, 'r+');
+    const fileData = await read(dir, file);
+    const newData = {...fileData, ...data};
+    await asyncTruncate(filePath);
+    await asyncWriteFile(filePath, JSON.stringify(newData));
+    await asyncClose(fileDescriptor as number);
+
+    return newData;
+  } catch (err) {
+    throw err;
+  }
+};
+
 type Delete = (dir: string, file: string) => Promise<void>;
 const deleteFile: Delete = async (dir, file) => {
   const filePath = getFilePath(baseDir, dir, file);
@@ -73,6 +91,6 @@ const deleteFile: Delete = async (dir, file) => {
   }
 };
 
-const lib = {create, delete: deleteFile, read, update};
+const lib = {create, delete: deleteFile, patch, read, update};
 
 export default lib;
