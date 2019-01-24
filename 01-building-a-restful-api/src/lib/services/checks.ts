@@ -16,6 +16,7 @@ import {
 } from '../validate';
 import {createServiceRouter} from './utils/index';
 import {Handler, RequestData} from './utils/types';
+import {verifyToken} from './verify-token';
 
 import config from '../../config';
 
@@ -53,7 +54,13 @@ const checksMethods: ChecksMethods = {
    * required data: protocol url method successCodes timeoutSeconds
    * optional data: none
    */
-  post: ({payload}, cb) => {
+  post: async ({headers, payload}, cb) => {
+    const {code, msg, verified} = await verifyToken(headers);
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
     const protocol = [payload.protocol]
       .map(exists('protocol is required'))
       .map(
