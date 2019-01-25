@@ -102,8 +102,46 @@ const checksMethods: ChecksMethods = {
     );
 
     if (!invalidFields.length) {
-      // get token using header data
-      // get user data by phone in token data
+      // get user using header data
+      const phone =
+        headers.phone instanceof Array ? headers.phone[0] : headers.phone;
+
+      try {
+        const user = await dataLib.read('users', phone);
+        const checks = user.checks || [];
+
+        if (checks.length < checksConfig.maxChecks) {
+          const checkId = helpers.createRandomString(20);
+          const checkData = {
+            id: checkId,
+            protocol,
+            url,
+            successCodes,
+            timeoutSeconds,
+            method,
+          };
+
+          try {
+            await dataLib.create('tokens', checkId, checkData);
+            await dataLib.update('users', phone, {
+              ...user,
+              checks: checks.concat(checkId),
+            });
+
+            return cb(201, checkData);
+          } catch (err) {
+            cb(500, {error: err});
+          }
+        } else {
+          return cb(422, {
+            error: `user has already allocated max checks: ${
+              checksConfig.maxChecks
+            }`,
+          });
+        }
+      } catch (err) {
+        cb(404, {error: `can't find user ${phone}`});
+      }
       // evaluate if the user can create any more checks
     } else {
       cb(400, {errors: invalidFields});
