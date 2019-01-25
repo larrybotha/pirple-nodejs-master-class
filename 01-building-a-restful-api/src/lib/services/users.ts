@@ -108,12 +108,17 @@ const userMethods: UserMethods = {
         // if it errors, create the file
       } catch (err) {
         try {
-          const {
-            password: privatePassword,
-            ...responseObject
-          } = await dataLib.create('users', phone as any, userObject);
+          const permittedFields = ['firstName', 'lastName', 'phone'];
+          const result = await dataLib.create(
+            'users',
+            phone as any,
+            userObject
+          );
+          const permittedResponse = permittedFields
+            .map(field => ({[field]: result[field]}))
+            .reduce((acc, obj) => ({...acc, ...obj}), {});
 
-          cb(201, responseObject);
+          cb(201, permittedResponse);
         } catch (err) {
           cb(500, err);
         }
