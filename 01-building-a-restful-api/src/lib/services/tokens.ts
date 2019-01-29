@@ -80,6 +80,10 @@ const tokenMethods: {[key: string]: Handler} = {
 
     const [_, token] = pathname.split('/');
 
+    if (!token) {
+      return cb(400, {error: 'missing required token parameter'});
+    }
+
     if (token !== headers.token) {
       return cb(403, {error: 'You do not have access to this resource'});
     }
