@@ -46,9 +46,13 @@ interface ChecksMethods {
 }
 
 const checksMethods: ChecksMethods = {
-  delete: () => {},
+  delete: (_, cb) => {
+    cb(500, {error: 'not implemented'});
+  },
 
-  get: () => {},
+  get: (_, cb) => {
+    cb(500, {error: 'not implemented'});
+  },
 
   /*
    * required data: protocol url method successCodes timeoutSeconds
@@ -148,7 +152,9 @@ const checksMethods: ChecksMethods = {
     }
   },
 
-  put: () => {},
+  put: (_, cb) => {
+    cb(500, {error: 'not implemented'});
+  },
 };
 
 const allowedMethods = ['get', 'put', 'post', 'delete'];
