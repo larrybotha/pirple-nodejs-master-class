@@ -85,7 +85,8 @@ const checksMethods: ChecksMethods = {
           `method must be one of ${checksAllowedMethods.join(',')}`,
           checksAllowedMethods
         )
-      );
+      )
+      .find(Boolean);
     const successCodes = [payload.successCodes]
       .map(exists('successCodes is required'))
       .map(isInstanceOf('Must be an array', Array))
