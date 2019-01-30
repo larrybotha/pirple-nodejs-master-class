@@ -46,7 +46,7 @@ const userMethods: UserMethods = {
 
       cb(200);
     } catch (err) {
-      cb(200);
+      cb(204);
     }
   },
 
