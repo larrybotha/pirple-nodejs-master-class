@@ -133,11 +133,11 @@ const checksMethods: ChecksMethods = {
           const checkId = helpers.createRandomString(20);
           const checkData = {
             id: checkId,
+            method,
             protocol,
-            url,
             successCodes,
             timeoutSeconds,
-            method,
+            url,
           };
 
           try {
