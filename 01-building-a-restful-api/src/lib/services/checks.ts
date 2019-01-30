@@ -46,8 +46,22 @@ interface ChecksMethods {
 }
 
 const checksMethods: ChecksMethods = {
-  delete: (_, cb) => {
-    cb(500, {error: 'not implemented'});
+  delete: async ({headers, pathname}, cb) => {
+    const {code, msg, verified} = await verifyToken(headers);
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
+    const [_, checkId] = pathname.split('/');
+
+    try {
+      await dataLib.delete('checks', checkId);
+
+      cb(200);
+    } catch (err) {
+      cb(204);
+    }
   },
 
   get: (_, cb) => {
@@ -113,9 +127,9 @@ const checksMethods: ChecksMethods = {
 
       try {
         const user = await dataLib.read('users', phone);
-	const userChecks = user.checks || [];
+        const userChecks = user.checks || [];
 
-	if (userChecks.length < checksConfig.maxChecks) {
+        if (userChecks.length < checksConfig.maxChecks) {
           const checkId = helpers.createRandomString(20);
           const checkData = {
             id: checkId,
@@ -127,10 +141,10 @@ const checksMethods: ChecksMethods = {
           };
 
           try {
-	    await dataLib.create('checks', checkId, checkData);
+            await dataLib.create('checks', checkId, checkData);
             await dataLib.update('users', phone, {
               ...user,
-	      checks: userChecks.concat(checkId),
+              checks: userChecks.concat(checkId),
             });
 
             return cb(201, checkData);
