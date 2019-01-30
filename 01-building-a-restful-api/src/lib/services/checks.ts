@@ -112,9 +112,9 @@ const checksMethods: ChecksMethods = {
 
       try {
         const user = await dataLib.read('users', phone);
-        const checks = user.checks || [];
+	const userChecks = user.checks || [];
 
-        if (checks.length < checksConfig.maxChecks) {
+	if (userChecks.length < checksConfig.maxChecks) {
           const checkId = helpers.createRandomString(20);
           const checkData = {
             id: checkId,
@@ -126,10 +126,10 @@ const checksMethods: ChecksMethods = {
           };
 
           try {
-            await dataLib.create('tokens', checkId, checkData);
+	    await dataLib.create('checks', checkId, checkData);
             await dataLib.update('users', phone, {
               ...user,
-              checks: checks.concat(checkId),
+	      checks: userChecks.concat(checkId),
             });
 
             return cb(201, checkData);
