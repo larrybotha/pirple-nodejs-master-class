@@ -16,11 +16,11 @@ const verifyToken: VerifyToken = async headers => {
   const {phone, token} = headers;
 
   if (typeof token !== 'string' || !token) {
-    return {verified: false, msg: 'invalid token', code: 403};
+    return {verified: false, msg: 'invalid token', code: 401};
   }
 
   if (typeof phone !== 'string' || !phone) {
-    return {verified: false, msg: 'invalid phone', code: 403};
+    return {verified: false, msg: 'invalid phone', code: 401};
   }
 
   try {
@@ -29,14 +29,14 @@ const verifyToken: VerifyToken = async headers => {
       phone === tokenData.phone
         ? {verified: true}
         : {
-            code: 403,
+            code: 401,
             msg: 'invalid token',
             verified: false,
           };
     const notExpired =
       Date.now() < tokenData.expires
         ? {verified: true}
-        : {verified: false, msg: 'token expired', code: 403};
+        : {verified: false, msg: 'token expired', code: 401};
 
     const invalidation = [validPhone, notExpired].find(
       ({verified}) => !Boolean(verified)
