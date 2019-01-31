@@ -64,8 +64,36 @@ const checksMethods: ChecksMethods = {
     }
   },
 
-  get: (_, cb) => {
-    cb(500, {error: 'not implemented'});
+  get: async ({headers, pathname}, cb) => {
+    const {code, msg, verified} = await verifyToken(headers);
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
+    const [_, checkId] = pathname.split('/');
+
+    if (checkId) {
+      try {
+        const phoneHeader = headers.phone;
+        const phone =
+          phoneHeader instanceof Array ? phoneHeader[0] : phoneHeader;
+        const userData = await dataLib.read('users', phone);
+        const checkData = await dataLib.read('checks', checkId);
+
+        if (userData.checks.indexOf(checkId) === -1) {
+          return cb(403, {
+            error: `You're not allowed to request this resource`,
+          });
+        } else {
+          return cb(200, checkData);
+        }
+      } catch (err) {
+        return cb(404, {error: err});
+      }
+    } else {
+      return cb(400, {error: 'No id provided'});
+    }
   },
 
   /*
