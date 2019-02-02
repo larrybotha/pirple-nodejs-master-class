@@ -33,12 +33,16 @@ interface CheckPostPayload {
   timeoutSeconds: number;
 }
 
-interface CheckPutPayload {}
-
-interface CheckDeletePayload {}
+interface CheckPutPayload {
+  protocol: string;
+  url: string;
+  method: string;
+  successCodes: number[];
+  timeoutSeconds: number;
+}
 
 interface ChecksMethods {
-  delete: Handler<CheckDeletePayload>;
+  delete: Handler;
   get: Handler;
   post: Handler<CheckPostPayload>;
   put: Handler<CheckPutPayload>;
@@ -56,6 +60,21 @@ const checksMethods: ChecksMethods = {
     const [_, checkId] = pathname.split('/');
 
     try {
+      const phone =
+        headers.phone instanceof Array ? headers.phone[0] : headers.phone;
+
+      try {
+        const userData = await dataLib.read('users', phone);
+        const newUserData = {
+          ...userData,
+          checks: userData.checks.filter((id: string) => id !== checkId),
+        };
+
+        await dataLib.update('users', phone, newUserData);
+      } catch (err) {
+        return cb(404, {error: `Couldn't find user with phone ${phone}`});
+      }
+
       await dataLib.delete('checks', checkId);
 
       cb(200);
@@ -162,6 +181,7 @@ const checksMethods: ChecksMethods = {
           const checkData = {
             id: checkId,
             method,
+            phone,
             protocol,
             successCodes,
             timeoutSeconds,
@@ -169,13 +189,13 @@ const checksMethods: ChecksMethods = {
           };
 
           try {
-            await dataLib.create('checks', checkId, checkData);
+            const data = await dataLib.create('checks', checkId, checkData);
             await dataLib.update('users', phone, {
               ...user,
               checks: userChecks.concat(checkId),
             });
 
-            return cb(201, checkData);
+            return cb(201, data);
           } catch (err) {
             cb(500, {error: err});
           }
@@ -205,10 +225,10 @@ const checksMethods: ChecksMethods = {
     const protocol = [payload.protocol]
       .map(exists('protocol is required'))
       .map(
-	oneOf(
-	  `protocol must be one of ${checksAllowedProtocols.join(', ')}`,
-	  checksAllowedProtocols
-	)
+        oneOf(
+          `protocol must be one of ${checksAllowedProtocols.join(', ')}`,
+          checksAllowedProtocols
+        )
       )
       .find(Boolean);
     const url = [payload.url]
@@ -218,10 +238,10 @@ const checksMethods: ChecksMethods = {
     const method = [payload.method]
       .map(exists('method is required'))
       .map(
-	oneOf(
-	  `method must be one of ${checksAllowedMethods.join(',')}`,
-	  checksAllowedMethods
-	)
+        oneOf(
+          `method must be one of ${checksAllowedMethods.join(',')}`,
+          checksAllowedMethods
+        )
       )
       .find(Boolean);
     const successCodes = [payload.successCodes]
@@ -245,22 +265,22 @@ const checksMethods: ChecksMethods = {
 
     if (!invalidFields.length) {
       try {
-	const [_, checkId] = pathname.split('/');
-	const checkData = await dataLib.read('checks', checkId);
-	const newData = {
-	  ...checkData,
-	  method,
-	  protocol,
-	  successCodes,
-	  timeoutSeconds,
-	  url,
-	};
+        const [_, checkId] = pathname.split('/');
+        const checkData = await dataLib.read('checks', checkId);
+        const newData = {
+          ...checkData,
+          method,
+          protocol,
+          successCodes,
+          timeoutSeconds,
+          url,
+        };
 
-	const result = await dataLib.update('checks', checkId, newData);
+        const result = await dataLib.update('checks', checkId, newData);
 
-	cb(200, result);
+        cb(200, result);
       } catch (err) {
-	return cb(500, {error: err});
+        return cb(500, {error: err});
       }
     } else {
       return cb(400, {error: invalidFields});
