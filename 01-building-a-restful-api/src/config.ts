@@ -9,8 +9,13 @@ interface Environment {
   httpsPort: number;
 
   services: {
-    checks: {
-      maxChecks: number;
+    checks: {maxChecks: number};
+  };
+
+  apis: {
+    twilio: {
+      sid: string;
+      token: string;
     };
   };
 }
@@ -22,8 +27,13 @@ const staging: Environment = {
   httpsPort: 3001,
 
   services: {
-    checks: {
-      maxChecks: 5,
+    checks: {maxChecks: 5},
+  },
+
+  apis: {
+    twilio: {
+      sid: process.env.TWILIO_SID,
+      token: process.env.TWILIO_TOKEN,
     },
   },
 };
@@ -34,8 +44,13 @@ const production: Environment = {
   httpsPort: 5001,
 
   services: {
-    checks: {
-      maxChecks: 5,
+    checks: {maxChecks: 5},
+  },
+
+  apis: {
+    twilio: {
+      sid: process.env.TWILIO_SID,
+      token: process.env.TWILIO_TOKEN,
     },
   },
 };
