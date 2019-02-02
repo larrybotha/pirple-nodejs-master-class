@@ -14,6 +14,7 @@ interface Environment {
 
   apis: {
     twilio: {
+      fromPhone: string;
       sid: string;
       token: string;
     };
@@ -32,6 +33,7 @@ const staging: Environment = {
 
   apis: {
     twilio: {
+      fromPhone: process.env.TWILIO_FROM_PHONE,
       sid: process.env.TWILIO_SID,
       token: process.env.TWILIO_TOKEN,
     },
@@ -49,6 +51,7 @@ const production: Environment = {
 
   apis: {
     twilio: {
+      fromPhone: process.env.TWILIO_FROM_PHONE,
       sid: process.env.TWILIO_SID,
       token: process.env.TWILIO_TOKEN,
     },
