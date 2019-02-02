@@ -42,11 +42,25 @@ const userMethods: UserMethods = {
     const [_, phone] = pathname.split('/');
 
     try {
+      const userData = await dataLib.read('users', phone);
+
+      if (userData.checks) {
+        try {
+          await Promise.all(
+            userData.checks.map((checkId: string) =>
+              dataLib.delete('checks', checkId)
+            )
+          );
+        } catch (err) {
+          return cb(500, {error: err});
+        }
+      }
+
       await dataLib.delete('users', phone);
 
       cb(200);
     } catch (err) {
-      cb(204);
+      cb(204, {error: err});
     }
   },
 
