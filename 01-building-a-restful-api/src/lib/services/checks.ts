@@ -195,8 +195,76 @@ const checksMethods: ChecksMethods = {
     }
   },
 
-  put: (_, cb) => {
-    cb(500, {error: 'not implemented'});
+  put: async ({headers, payload, pathname}, cb) => {
+    const {code, msg, verified} = await verifyToken(headers);
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
+    const protocol = [payload.protocol]
+      .map(exists('protocol is required'))
+      .map(
+	oneOf(
+	  `protocol must be one of ${checksAllowedProtocols.join(', ')}`,
+	  checksAllowedProtocols
+	)
+      )
+      .find(Boolean);
+    const url = [payload.url]
+      .map(exists('url is required'))
+      .map(trim())
+      .find(Boolean);
+    const method = [payload.method]
+      .map(exists('method is required'))
+      .map(
+	oneOf(
+	  `method must be one of ${checksAllowedMethods.join(',')}`,
+	  checksAllowedMethods
+	)
+      )
+      .find(Boolean);
+    const successCodes = [payload.successCodes]
+      .map(exists('successCodes is required'))
+      .map(isInstanceOf('Must be an array', Array))
+      .map(minLength('successCodes must have min length of 1', {length: 1}))
+      .find(Boolean);
+    const timeoutSeconds = [payload.timeoutSeconds]
+      .map(exists('timeoutSeconds is required'))
+      .map(isOfType('Must be a number', {types: ['number']}))
+      .find(Boolean);
+    const invalidFields = [
+      protocol,
+      url,
+      method,
+      successCodes,
+      timeoutSeconds,
+    ].filter(
+      (field: Valid | Invalid) => Boolean(field) && Boolean(field.error)
+    );
+
+    if (!invalidFields.length) {
+      try {
+	const [_, checkId] = pathname.split('/');
+	const checkData = await dataLib.read('checks', checkId);
+	const newData = {
+	  ...checkData,
+	  method,
+	  protocol,
+	  successCodes,
+	  timeoutSeconds,
+	  url,
+	};
+
+	const result = await dataLib.update('checks', checkId, newData);
+
+	cb(200, result);
+      } catch (err) {
+	return cb(500, {error: err});
+      }
+    } else {
+      return cb(400, {error: invalidFields});
+    }
   },
 };
 
