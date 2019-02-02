@@ -14,8 +14,8 @@
     "watch:tsc": "npm run tsc -- -w",
     "watch:test": "npm run test -- --watchAll",
     "watch:test:api": "npm run test:api -- --watchAll",
-    "watch:server": "nodemon dist/src",
-    "watch:server:homework-01": "nodemon dist/homework-01/src"
+    "watch:server": "source set-env.sh && nodemon dist/src",
+    "watch:server:homework-01": "source set-env.sh && nodemon dist/homework-01/src"
   },
   "keywords": [],
   "author": "",
