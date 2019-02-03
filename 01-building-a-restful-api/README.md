@@ -19,6 +19,7 @@
   - [Deleting files](#deleting-files)
 - [Users service](#users-service)
 - [Tokens service](#tokens-service)
+- [Twilio helper](#twilio-helper)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -223,3 +224,12 @@ try {
 - `GET`, `PUT`, `DELETE` should only be available to users who already have a
     token. Existence and verification of the token happens before the request is
     processed any further
+
+## Twilio helper
+
+- `https` module can be used to not only handle requests, but also make requests
+    using `https.request`, which receives the request config
+- `https.request` returns a stream. The `error` event should have a listener to
+    manage errors
+- The stream object has a `.write` method that the payload is passed to
+- `reqStream.end()` makes the stream perform the request
