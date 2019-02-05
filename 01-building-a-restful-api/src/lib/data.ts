@@ -10,6 +10,7 @@ const asyncRead = promisify(fs.readFile);
 const asyncTruncate = promisify(fs.truncate);
 const asyncUnlink = promisify(fs.unlink);
 const asyncWriteFile = promisify(fs.writeFile);
+const asyncReaddir = promisify(fs.readdir);
 
 const baseDir = path.join(__dirname, '../../../.data');
 
@@ -91,6 +92,38 @@ const deleteFile: Delete = async (dir, file) => {
   }
 };
 
-const lib = {create, delete: deleteFile, patch, read, update};
+type List = (
+  dir: string,
+  filterConditions?: {[key: string]: (v: any) => boolean}
+) => Promise<any[]>;
+const list: List = async (dir, filterConditions = {}) => {
+  let trimmedFilenames: string[] = [];
+  const filterKeys = Object.keys(filterConditions);
+
+  try {
+    const result = await asyncReaddir(path.join(baseDir, dir));
+
+    trimmedFilenames = result
+      .filter(f => /\.json/.test(f))
+      .map(f => f.replace('.json', ''));
+  } catch (err) {
+    throw err;
+  }
+
+  const allData = await Promise.all(
+    trimmedFilenames.map(async f => await read(dir, f))
+  );
+  const data = allData.filter(d => {
+    const isValid = filterKeys.length
+      ? filterKeys.every(k => filterConditions[k](d))
+      : true;
+
+    return isValid;
+  });
+
+  return data;
+};
+
+const lib = {create, delete: deleteFile, list, patch, read, update};
 
 export default lib;
