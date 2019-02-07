@@ -1,9 +1,9 @@
-import * as querystring from 'querystring';
 import * as https from 'https';
+import * as querystring from 'querystring';
 import * as util from 'util';
 
-import {exists, Invalid, trim, Valid, Validator} from '../validate';
 import config from '../../config';
+import {exists, Invalid, trim, Valid, Validator} from '../validate';
 
 const twilioConfig = config.apis.twilio;
 
@@ -18,11 +18,11 @@ const twilioConfig = config.apis.twilio;
  * @return undefined
  */
 type SendSms = (
-  config: {phone: string; msg: string},
+  options: {phone: string; msg: string},
   cb: (res: {ok: boolean; error?: any}) => void
 ) => void;
-const sendSms: SendSms = (config, callback) => {
-  const phone = [config.phone]
+const sendSms: SendSms = (options, callback) => {
+  const phone = [options.phone]
     .map(trim())
     .map(exists('phone is required'))
     .map(p => {
@@ -35,7 +35,7 @@ const sendSms: SendSms = (config, callback) => {
       return p.error ? p : validateLength(p);
     })
     .find(Boolean);
-  const msg = [config.msg]
+  const msg = [options.msg]
     .map(trim())
     .map(exists('message is required'))
     .map(m => {
@@ -59,15 +59,15 @@ const sendSms: SendSms = (config, callback) => {
     };
     const stringifiedPayload = querystring.stringify(payload);
     const requestOptions: https.RequestOptions = {
-      protocol: 'https',
-      hostname: 'api.twilio.com',
-      method: 'POST',
-      path: `/2010-04-01/${twilioConfig.sid}/Messages.json`,
       auth: `${twilioConfig.sid}:${twilioConfig.token}`,
       headers: {
         'Content-Type': 'application/x-www-url-form-encoded',
         'Content-length': Buffer.byteLength(stringifiedPayload),
       },
+      hostname: 'api.twilio.com',
+      method: 'POST',
+      path: `/2010-04-01/${twilioConfig.sid}/Messages.json`,
+      protocol: 'https',
     };
     const request = https.request(requestOptions, res => {
       const {statusCode} = res;
