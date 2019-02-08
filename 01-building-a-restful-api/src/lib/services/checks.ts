@@ -25,27 +25,29 @@ const checksConfig = config.services.checks;
 const checksAllowedProtocols = ['https', 'http'];
 const checksAllowedMethods = ['get', 'put', 'post', 'delete'];
 
-interface CheckPostPayload {
-  protocol: string;
-  url: string;
+interface Check {
+  id: string;
   method: string;
+  phone: number | string;
+  protocol: string;
   successCodes: number[];
   timeoutSeconds: number;
+  url: string;
 }
 
-interface CheckPutPayload {
-  protocol: string;
-  url: string;
-  method: string;
-  successCodes: number[];
-  timeoutSeconds: number;
+interface PayloadRequiredParams {
+  protocol: Check['protocol'];
+  url: Check['url'];
+  method: Check['method'];
+  successCodes: Check['successCodes'];
+  timeoutSeconds: Check['timeoutSeconds'];
 }
 
 interface ChecksMethods {
   delete: Handler;
   get: Handler;
-  post: Handler<CheckPostPayload>;
-  put: Handler<CheckPutPayload>;
+  post: Handler<PayloadRequiredParams>;
+  put: Handler<PayloadRequiredParams>;
   [key: string]: any;
 }
 
@@ -98,7 +100,7 @@ const checksMethods: ChecksMethods = {
         const phone =
           phoneHeader instanceof Array ? phoneHeader[0] : phoneHeader;
         const userData = await dataLib.read('users', phone);
-        const checkData = await dataLib.read('checks', checkId);
+        const checkData: Check = await dataLib.read('checks', checkId);
 
         if (userData.checks.indexOf(checkId) === -1) {
           return cb(403, {
@@ -178,7 +180,7 @@ const checksMethods: ChecksMethods = {
 
         if (userChecks.length < checksConfig.maxChecks) {
           const checkId = helpers.createRandomString(20);
-          const checkData = {
+          const checkData: Check = {
             id: checkId,
             method,
             phone,
@@ -291,4 +293,4 @@ const checksMethods: ChecksMethods = {
 const allowedMethods = ['get', 'put', 'post', 'delete'];
 const checks = createServiceRouter(allowedMethods, checksMethods);
 
-export {checks};
+export {checks, Check};

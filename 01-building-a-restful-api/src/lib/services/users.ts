@@ -12,27 +12,20 @@ import {
   validateTos,
 } from './utils/validations';
 
-interface UserPostPayload {
+interface User {
+  checks?: string[];
   firstName: string;
   lastName: string;
   password: string;
   phone: string;
-  tosAgreement: string;
-}
-
-interface UserPatchPayload {
-  firstName?: string;
-  lastName?: string;
-  password?: string;
-  phone?: string;
-  [key: string]: any;
+  tosAgreement: boolean | string;
 }
 
 interface UserMethods {
   delete: Handler;
   get: Handler;
-  patch: Handler<UserPatchPayload>;
-  post: Handler<UserPostPayload>;
+  patch: Handler<Partial<User> & {[key: string]: any}>;
+  post: Handler<User>;
   put: Handler;
   [key: string]: any;
 }
@@ -42,7 +35,7 @@ const userMethods: UserMethods = {
     const [_, phone] = pathname.split('/');
 
     try {
-      const userData = await dataLib.read('users', phone);
+      const userData: User = await dataLib.read('users', phone);
 
       if (userData.checks) {
         try {
@@ -106,7 +99,7 @@ const userMethods: UserMethods = {
         return cb(500, {error: `Couldn't hash user's password`});
       }
 
-      const userObject = {
+      const userObject: User = {
         firstName,
         lastName,
         password: hashedPassword,
@@ -151,9 +144,13 @@ const userMethods: UserMethods = {
       try {
         const permittedFields = ['firstName', 'lastName', 'phone'];
         const permittedData = permittedFields
-          .map(field => (payload[field] ? {[field]: payload[field]} : false))
+          .map((field: any) => {
+            const val = payload[field];
+
+            return val ? {[field]: val} : false;
+          })
           .filter(Boolean)
-          .reduce((acc, obj) => ({...acc, ...obj}), {});
+          .reduce((acc, obj) => Object.assign({}, acc, obj), {});
         const result = await dataLib.patch('users', phone, permittedData);
         const permittedResponse = permittedFields
           .map(field => ({[field]: result[field]}))
@@ -200,4 +197,4 @@ const userMethods: UserMethods = {
 const allowedMethods = ['get', 'patch', 'put', 'post', 'delete'];
 const users = createServiceRouter(allowedMethods, userMethods);
 
-export {users};
+export {users, User};
