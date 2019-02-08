@@ -7,14 +7,39 @@ import * as https from 'https';
 import * as path from 'path';
 import * as url from 'url';
 
-import * as dataLib from './data';
-import * as helpers from './helpers';
+import dataLib from './data';
+import helpers from './helpers';
 
-const gatherAllChecks = () => {};
+import {Check} from './services/checks';
 
-const loop = () => {};
+type GatherAllChecks = () => void;
+const gatherAllChecks: GatherAllChecks = async () => {
+  try {
+    const checks: Check[] = await dataLib.list('checks');
 
-const init = () => {
+    if (checks.length === 0) throw new Error('No checks');
+
+    checks.map(validateCheckData);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+type ValidateCheckData = (check: Check) => void;
+const validateCheckData: ValidateCheckData = check => {};
+
+/*
+ * Execute worker process once per minute
+ */
+type Loop = () => void;
+const loop: Loop = () => {
+  setInterval(() => {
+    gatherAllChecks();
+  }, 1000 * 60);
+};
+
+type Init = () => void;
+const init: Init = () => {
   // create all checkes
   gatherAllChecks();
 
@@ -22,6 +47,9 @@ const init = () => {
   loop();
 };
 
+interface Workers {
+  init: Init;
+}
 const workers = {init};
 
 export default workers;
