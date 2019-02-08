@@ -150,7 +150,7 @@ const userMethods: UserMethods = {
             return val ? {[field]: val} : false;
           })
           .filter(Boolean)
-          .reduce((acc, obj) => Object.assign({}, acc, obj), {});
+          .reduce((acc, obj) => ({...acc, ...obj}), {});
         const result = await dataLib.patch('users', phone, permittedData);
         const permittedResponse = permittedFields
           .map(field => ({[field]: result[field]}))
