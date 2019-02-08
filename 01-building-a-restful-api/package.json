@@ -12,8 +12,8 @@
     "test:api": "npm test -- -c ./config/tests/jest.newman.js",
     "tsc": "tsc",
     "watch:tsc": "npm run tsc -- -w",
-    "watch:test": "npm run test -- --watchAll",
-    "watch:test:api": "npm run test:api -- --watchAll",
+    "watch:test": "npm run test -- --watch",
+    "watch:test:api": "npm run test:api -- --watch --runInBand",
     "watch:server": "source set-env.sh && nodemon dist/src",
     "watch:server:homework-01": "source set-env.sh && nodemon dist/homework-01/src"
   },
@@ -24,6 +24,7 @@
     "@types/dotenv": "6.1.0",
     "concurrently": "4.1.0",
     "dotenv": "6.2.0",
-    "jest": "23.6.0"
+    "jest": "23.6.0",
+    "nodemon": "1.18.9"
   }
 }
