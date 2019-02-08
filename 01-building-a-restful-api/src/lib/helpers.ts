@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 
 import config from '../config';
 
-type Hash = (s: string) => string | boolean;
+type Hash = (s: string) => string;
 const hash: Hash = str => {
   if (typeof str === 'string') {
     const hashedString = crypto
@@ -12,7 +12,7 @@ const hash: Hash = str => {
 
     return hashedString;
   } else {
-    return false;
+    return '';
   }
 };
 
