@@ -2,18 +2,14 @@ import * as http from 'http';
 
 import dataLib from '../data';
 import helpers from '../helpers';
-import {User} from './users';
-import {equals, exists} from '../validate';
-import {createServiceRouter} from './utils/index';
-import {Handler, RequestData} from './utils/types';
-import {validatePassword, validatePhone} from './utils/validations';
-import {verifyToken} from './verify-token';
+import {Handler, RequestData} from '../types';
+import {Token} from '../types/services/tokens';
+import {User} from '../types/services/users';
 
-interface Token {
-  expires: number;
-  id: string;
-  phone: string;
-}
+import {createServiceRouter} from './utils';
+import {verifyToken} from './utils/verify-token';
+import {equals, exists} from './validations';
+import {validatePassword, validatePhone} from './validations/users';
 
 interface TokenPostPayload {
   password: string;
@@ -21,8 +17,8 @@ interface TokenPostPayload {
 }
 
 interface TokenPutPayload {
-  phone: Token['phone'];
   extend: boolean;
+  phone: Token['phone'];
 }
 
 interface TokenDeletePayload {
@@ -220,4 +216,4 @@ const tokenMethods: {[key: string]: Handler} = {
 const allowedMethods = ['get', 'put', 'post', 'delete'];
 const tokens = createServiceRouter(allowedMethods, tokenMethods);
 
-export {tokens, Token};
+export {tokens};

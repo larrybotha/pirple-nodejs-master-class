@@ -1,25 +1,17 @@
 import dataLib from '../data';
 import helpers from '../helpers';
-import {equals, exists, isOfType, minLength, trim} from '../validate';
+import {Handler, RequestData} from '../types';
+import {User} from '../types/services/users';
+import {equals, exists, isOfType, minLength, trim} from './validations';
 
 import {createServiceRouter} from './utils/index';
-import {Handler, RequestData} from './utils/types';
 import {
   validateFirstName,
   validateLastName,
   validatePassword,
   validatePhone,
   validateTos,
-} from './utils/validations';
-
-interface User {
-  checks?: string[];
-  firstName: string;
-  lastName: string;
-  password: string;
-  phone: string;
-  tosAgreement: boolean | string;
-}
+} from './validations/users';
 
 interface UserMethods {
   delete: Handler;
@@ -197,4 +189,4 @@ const userMethods: UserMethods = {
 const allowedMethods = ['get', 'patch', 'put', 'post', 'delete'];
 const users = createServiceRouter(allowedMethods, userMethods);
 
-export {users, User};
+export {users};

@@ -1,5 +1,5 @@
 import services from './services';
-import {Handler} from './services/utils/types';
+import {Handler} from './types';
 
 const router: {[key: string]: Handler} = {
   ...services,

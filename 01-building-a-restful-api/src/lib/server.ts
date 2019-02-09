@@ -12,7 +12,7 @@ import * as url from 'url';
 import config from '../config';
 import helpers from './helpers';
 import router from './router';
-import {Handler, RequestData} from './services/utils/types';
+import {Handler, RequestData} from './types';
 
 const {httpPort, httpsPort, envName} = config;
 

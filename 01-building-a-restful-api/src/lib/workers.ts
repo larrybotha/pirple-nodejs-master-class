@@ -10,17 +10,20 @@ import * as url from 'url';
 import dataLib from './data';
 import helpers from './helpers';
 
-import {Check} from './services/checks';
+import {Check} from './types/services/checks';
 
 type GatherAllChecks = () => void;
 const gatherAllChecks: GatherAllChecks = async () => {
   try {
     const checks: Check[] = await dataLib.list('checks');
 
-    if (checks.length === 0) throw new Error('No checks');
+    if (checks.length === 0) {
+      throw new Error('No checks');
+    }
 
     checks.map(validateCheckData);
   } catch (err) {
+    // tslint:disable-next-line
     console.log(err);
   }
 };

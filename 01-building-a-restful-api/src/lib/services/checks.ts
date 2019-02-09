@@ -2,6 +2,10 @@ import * as http from 'http';
 
 import dataLib from '../data';
 import helpers from '../helpers';
+import {Handler, RequestData} from '../types';
+import {Check} from '../types/services/checks';
+import {createServiceRouter} from './utils';
+import {verifyToken} from './utils/verify-token';
 import {
   equals,
   exists,
@@ -13,10 +17,7 @@ import {
   trim,
   Valid,
   Validator,
-} from '../validate';
-import {createServiceRouter} from './utils/index';
-import {Handler, RequestData} from './utils/types';
-import {verifyToken} from './verify-token';
+} from './validations';
 
 import config from '../../config';
 
@@ -24,16 +25,6 @@ const checksConfig = config.services.checks;
 
 const checksAllowedProtocols = ['https', 'http'];
 const checksAllowedMethods = ['get', 'put', 'post', 'delete'];
-
-interface Check {
-  id: string;
-  method: string;
-  phone: number | string;
-  protocol: string;
-  successCodes: number[];
-  timeoutSeconds: number;
-  url: string;
-}
 
 interface PayloadRequiredParams {
   protocol: Check['protocol'];
@@ -293,4 +284,4 @@ const checksMethods: ChecksMethods = {
 const allowedMethods = ['get', 'put', 'post', 'delete'];
 const checks = createServiceRouter(allowedMethods, checksMethods);
 
-export {checks, Check};
+export {checks};

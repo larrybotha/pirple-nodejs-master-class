@@ -1,6 +1,6 @@
 import * as http from 'http';
 
-import dataLib from '../data';
+import dataLib from '../../data';
 
 // verify if a given token id is valid for the current user
 interface TokenValidation {
