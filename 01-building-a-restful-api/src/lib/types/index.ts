@@ -1,7 +1,9 @@
 import * as http from 'http';
 import {ParsedUrlQuery} from 'querystring';
 
-export interface RequestData<T> {
+import {ResponseError, ResponseSuccess} from './responses';
+
+interface RequestData<T> {
   headers: http.IncomingHttpHeaders;
   method: string;
   pathname: string;
@@ -9,8 +11,10 @@ export interface RequestData<T> {
   query?: ParsedUrlQuery;
 }
 
-type HandlerCallback = (statusCode: number, responseData?: object) => void;
-export type Handler<T = any> = (
-  data: RequestData<T>,
-  cb: HandlerCallback
+type HandlerCallback = (
+  statusCode: number,
+  responseData?: ResponseSuccess | ResponseError
 ) => void;
+type Handler<T = any> = (data: RequestData<T>, cb: HandlerCallback) => void;
+
+export {RequestData, Handler};
