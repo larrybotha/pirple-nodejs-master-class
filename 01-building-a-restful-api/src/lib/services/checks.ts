@@ -1,30 +1,24 @@
 import * as http from 'http';
 
+import config from '../../config';
 import dataLib from '../data';
 import helpers from '../helpers';
 import {Handler, RequestData} from '../types';
 import {Check} from '../types/services/checks';
+import {User} from '../types/services/users';
+import {Invalid, Valid} from '../validations';
+
 import {createServiceRouter} from './utils';
 import {verifyToken} from './utils/verify-token';
 import {
-  equals,
-  exists,
-  Invalid,
-  isInstanceOf,
-  isOfType,
-  minLength,
-  oneOf,
-  trim,
-  Valid,
-  Validator,
-} from './validations';
-
-import config from '../../config';
+  validateMethod,
+  validateProtocol,
+  validateSuccessCodes,
+  validateTimeoutSeconds,
+  validateUrl,
+} from './validations/checks';
 
 const checksConfig = config.services.checks;
-
-const checksAllowedProtocols = ['https', 'http'];
-const checksAllowedMethods = ['get', 'put', 'post', 'delete'];
 
 interface PayloadRequiredParams {
   protocol: Check['protocol'];
@@ -57,8 +51,8 @@ const checksMethods: ChecksMethods = {
         headers.phone instanceof Array ? headers.phone[0] : headers.phone;
 
       try {
-        const userData = await dataLib.read('users', phone);
-        const newUserData = {
+        const userData: User = await dataLib.read('users', phone);
+        const newUserData: User = {
           ...userData,
           checks: userData.checks.filter((id: string) => id !== checkId),
         };
@@ -90,7 +84,7 @@ const checksMethods: ChecksMethods = {
         const phoneHeader = headers.phone;
         const phone =
           phoneHeader instanceof Array ? phoneHeader[0] : phoneHeader;
-        const userData = await dataLib.read('users', phone);
+        const userData: User = await dataLib.read('users', phone);
         const checkData: Check = await dataLib.read('checks', checkId);
 
         if (userData.checks.indexOf(checkId) === -1) {
@@ -119,37 +113,11 @@ const checksMethods: ChecksMethods = {
       return cb(code, {error: msg});
     }
 
-    const protocol = [payload.protocol]
-      .map(exists('protocol is required'))
-      .map(
-        oneOf(
-          `protocol must be one of ${checksAllowedProtocols.join(', ')}`,
-          checksAllowedProtocols
-        )
-      )
-      .find(Boolean);
-    const url = [payload.url]
-      .map(exists('url is required'))
-      .map(trim())
-      .find(Boolean);
-    const method = [payload.method]
-      .map(exists('method is required'))
-      .map(
-        oneOf(
-          `method must be one of ${checksAllowedMethods.join(',')}`,
-          checksAllowedMethods
-        )
-      )
-      .find(Boolean);
-    const successCodes = [payload.successCodes]
-      .map(exists('successCodes is required'))
-      .map(isInstanceOf('Must be an array', Array))
-      .map(minLength('successCodes must have min length of 1', {length: 1}))
-      .find(Boolean);
-    const timeoutSeconds = [payload.timeoutSeconds]
-      .map(exists('timeoutSeconds is required'))
-      .map(isOfType('Must be a number', {types: ['number']}))
-      .find(Boolean);
+    const protocol = validateProtocol(payload.protocol);
+    const url = validateUrl(payload.url);
+    const method = validateMethod(payload.method);
+    const successCodes = validateSuccessCodes(payload.successCodes);
+    const timeoutSeconds = validateTimeoutSeconds(payload.timeoutSeconds);
     const invalidFields = [
       protocol,
       url,
@@ -166,10 +134,10 @@ const checksMethods: ChecksMethods = {
         headers.phone instanceof Array ? headers.phone[0] : headers.phone;
 
       try {
-        const user = await dataLib.read('users', phone);
-        const userChecks = user.checks || [];
+        const user: User = await dataLib.read('users', phone);
+        const userCheckIds: Check['id'][] = user.checks || [];
 
-        if (userChecks.length < checksConfig.maxChecks) {
+        if (userCheckIds.length < checksConfig.maxChecks) {
           const checkId = helpers.createRandomString(20);
           const checkData: Check = {
             id: checkId,
@@ -185,7 +153,7 @@ const checksMethods: ChecksMethods = {
             const data = await dataLib.create('checks', checkId, checkData);
             await dataLib.update('users', phone, {
               ...user,
-              checks: userChecks.concat(checkId),
+              checks: userCheckIds.concat(checkId),
             });
 
             return cb(201, data);
@@ -215,37 +183,11 @@ const checksMethods: ChecksMethods = {
       return cb(code, {error: msg});
     }
 
-    const protocol = [payload.protocol]
-      .map(exists('protocol is required'))
-      .map(
-        oneOf(
-          `protocol must be one of ${checksAllowedProtocols.join(', ')}`,
-          checksAllowedProtocols
-        )
-      )
-      .find(Boolean);
-    const url = [payload.url]
-      .map(exists('url is required'))
-      .map(trim())
-      .find(Boolean);
-    const method = [payload.method]
-      .map(exists('method is required'))
-      .map(
-        oneOf(
-          `method must be one of ${checksAllowedMethods.join(',')}`,
-          checksAllowedMethods
-        )
-      )
-      .find(Boolean);
-    const successCodes = [payload.successCodes]
-      .map(exists('successCodes is required'))
-      .map(isInstanceOf('Must be an array', Array))
-      .map(minLength('successCodes must have min length of 1', {length: 1}))
-      .find(Boolean);
-    const timeoutSeconds = [payload.timeoutSeconds]
-      .map(exists('timeoutSeconds is required'))
-      .map(isOfType('Must be a number', {types: ['number']}))
-      .find(Boolean);
+    const protocol = validateProtocol(payload.protocol);
+    const url = validateUrl(payload.url);
+    const method = validateMethod(payload.method);
+    const successCodes = validateSuccessCodes(payload.successCodes);
+    const timeoutSeconds = validateTimeoutSeconds(payload.timeoutSeconds);
     const invalidFields = [
       protocol,
       url,
