@@ -3,7 +3,15 @@ import * as querystring from 'querystring';
 import * as util from 'util';
 
 import config from '../../config';
-import {exists, Invalid, trim, Valid, Validator} from '../validations';
+import {
+  exists,
+  hasLength,
+  Invalid,
+  maxLength,
+  trim,
+  Valid,
+  Validator,
+} from '../validations';
 
 const twilioConfig = config.apis.twilio;
 
@@ -25,28 +33,12 @@ const sendSms: SendSms = (options, callback) => {
   const phone = [options.phone]
     .map(trim())
     .map(exists('phone is required'))
-    .map(p => {
-      const validateLength = (v: Valid) => {
-        return v.length === 10
-          ? v
-          : {error: 'phone must be 10 characters long'};
-      };
-
-      return p.error ? p : validateLength(p);
-    })
+    .map(hasLength(10, 'phone must be at least 10 characters long'))
     .find(Boolean);
   const msg = [options.msg]
     .map(trim())
     .map(exists('message is required'))
-    .map(m => {
-      const validateLength = (v: Valid) => {
-        return v.length <= 1600
-          ? v
-          : {error: 'message must be no more than 1600 characters long'};
-      };
-
-      return m.error ? m : validateLength(m);
-    })
+    .map(maxLength(1600, 'message must be no longer than 1600 characters long'))
     .find(Boolean);
   const fields = [phone, msg];
   const invalidFields = fields.map((f: Valid | Invalid) => Boolean(f.error));

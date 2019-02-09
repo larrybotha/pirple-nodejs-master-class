@@ -3,10 +3,12 @@ export interface Invalid {
   error: string;
 }
 
-export type Validator<O = {[key: string]: any}, T = Valid | Invalid> = (
-  msg?: string,
-  options?: O
-) => (val: Valid | Invalid) => T extends Invalid ? Invalid[] : Valid | Invalid;
+export type Validator<Options = any, Result = Valid | Invalid> = (
+  options?: Options,
+  msg?: string
+) => (
+  val: Valid | Invalid
+) => Result extends Invalid ? Invalid[] : Valid | Invalid;
 
 type ValidateMap = (fn: Validator) => [Valid | Invalid];
 
@@ -28,16 +30,16 @@ const trim: Validator = () => val => {
   return isError(val) ? val : trimValue(val);
 };
 
-const oneOf: Validator<any[]> = (msg = 'Does not match', options) => val => {
+const oneOf: Validator<any[]> = (options, msg = 'Does not match') => val => {
   const validateIsOneOf = (v: Valid) =>
     options.indexOf(v) >= -1 ? v : {error: msg};
 
   return isError(val) ? val : validateIsOneOf(val);
 };
 
-const isOfType: Validator<{types: string[]}> = (
-  msg = 'Value is incorrect type',
-  {types = []}
+const isOfType: Validator<string[]> = (
+  types = [],
+  msg = 'Value is incorrect type'
 ) => val => {
   const type = typeof val;
   const validateType = (v: Valid) =>
@@ -47,8 +49,8 @@ const isOfType: Validator<{types: string[]}> = (
 };
 
 const isInstanceOf: Validator<any> = (
-  msg = 'Value is incorrect instance',
-  instance
+  instance,
+  msg = 'Value is incorrect instance'
 ) => val => {
   const validateInstance = (v: Valid) =>
     v instanceof instance ? v : {error: msg};
@@ -56,9 +58,19 @@ const isInstanceOf: Validator<any> = (
   return isError(val) ? val : validateInstance(val);
 };
 
-const minLength: Validator<{length: number}> = (
-  msg = 'This value is not long enough',
-  {length = 0}
+const maxLength: Validator<number> = (
+  length = 0,
+  msg = `This value is greater than ${length} characters long`
+) => val => {
+  const validateMaxLength = (v: Valid) =>
+    v.length <= length ? v : {error: msg};
+
+  return isError(val) ? val : validateMaxLength(val);
+};
+
+const minLength: Validator<number> = (
+  length = 0,
+  msg = `This value is not at least ${length} characters long`
 ) => val => {
   const validateMinLength = (v: Valid) =>
     v.length >= length ? v : {error: msg};
@@ -66,13 +78,33 @@ const minLength: Validator<{length: number}> = (
   return isError(val) ? val : validateMinLength(val);
 };
 
-const equals: Validator<{value: any}> = (
-  msg = 'This value is incorrect',
-  {value = null}
+const hasLength: Validator<number> = (
+  length = 0,
+  msg = `This value is not of length ${length}`
+) => val => {
+  const validateMinLength = (v: Valid) =>
+    v.length >= length ? v : {error: msg};
+
+  return isError(val) ? val : validateMinLength(val);
+};
+
+const equals: Validator<any> = (
+  value = null,
+  msg = 'This value is incorrect'
 ) => val => {
   const validateEqual = (v: Valid) => (v === value ? v : {error: msg});
 
   return isError(val) ? val : validateEqual(val);
 };
 
-export {equals, exists, isInstanceOf, isOfType, minLength, oneOf, trim};
+export {
+  equals,
+  exists,
+  hasLength,
+  isInstanceOf,
+  isOfType,
+  maxLength,
+  minLength,
+  oneOf,
+  trim,
+};

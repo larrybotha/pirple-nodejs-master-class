@@ -21,11 +21,11 @@ import {
 const checksConfig = config.services.checks;
 
 interface PayloadRequiredParams {
-  protocol: Check['protocol'];
-  url: Check['url'];
   method: Check['method'];
+  protocol: Check['protocol'];
   successCodes: Check['successCodes'];
   timeoutSeconds: Check['timeoutSeconds'];
+  url: Check['url'];
 }
 
 interface ChecksMethods {
@@ -135,7 +135,7 @@ const checksMethods: ChecksMethods = {
 
       try {
         const user: User = await dataLib.read('users', phone);
-        const userCheckIds: Check['id'][] = user.checks || [];
+        const userCheckIds: Array<Check['id']> = user.checks || [];
 
         if (userCheckIds.length < checksConfig.maxChecks) {
           const checkId = helpers.createRandomString(20);
