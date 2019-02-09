@@ -2,24 +2,31 @@ import * as http from 'http';
 
 import dataLib from '../data';
 import helpers from '../helpers';
+import {User} from './users';
 import {equals, exists} from '../validate';
 import {createServiceRouter} from './utils/index';
 import {Handler, RequestData} from './utils/types';
 import {validatePassword, validatePhone} from './utils/validations';
 import {verifyToken} from './verify-token';
 
-interface TokenPostPayload {
-  password: string;
+interface Token {
+  expires: number;
+  id: string;
   phone: string;
 }
 
+interface TokenPostPayload {
+  password: string;
+  phone: Token['phone'];
+}
+
 interface TokenPutPayload {
-  phone: string;
+  phone: Token['phone'];
   extend: boolean;
 }
 
 interface TokenDeletePayload {
-  phone: string;
+  phone: Token['phone'];
 }
 
 interface TokenMethods {
@@ -52,13 +59,12 @@ const tokenMethods: {[key: string]: Handler} = {
 
     if (!invalidFields.length) {
       try {
-        const rawTokenData: string = await dataLib.read('tokens', id);
-
+        await dataLib.read('tokens', id);
         await dataLib.delete('tokens', id);
 
         cb(200);
       } catch (e) {
-        cb(200);
+        cb(204);
       }
     } else {
       cb(400, {errors: invalidFields});
@@ -89,7 +95,7 @@ const tokenMethods: {[key: string]: Handler} = {
     }
 
     try {
-      const tokenData = await dataLib.read(
+      const tokenData: Token = await dataLib.read(
         'tokens',
         typeof token === 'string' ? token : token[0]
       );
@@ -117,7 +123,7 @@ const tokenMethods: {[key: string]: Handler} = {
 
     if (isValid) {
       try {
-        const user = await dataLib.read('users', phone);
+        const user: User = await dataLib.read('users', phone);
 
         const hashedPassword = helpers.hash(payload.password);
 
@@ -131,13 +137,13 @@ const tokenMethods: {[key: string]: Handler} = {
 
         const tokenId = helpers.createRandomString(20);
         const expires = Date.now() + 1000 * 60 * 60;
-        const token = {
+        const token: Token = {
           expires,
           id: tokenId,
           phone,
         };
 
-        const tokenData = await dataLib.create('tokens', tokenId, token);
+        const tokenData: Token = await dataLib.create('tokens', tokenId, token);
 
         cb(201, tokenData);
       } catch (err) {
@@ -175,19 +181,16 @@ const tokenMethods: {[key: string]: Handler} = {
 
     if (tokenId && !extend.error) {
       try {
-        const tokenData: {expires: number} = await dataLib.read(
-          'tokens',
-          tokenId
-        );
+        const tokenData: Token = await dataLib.read('tokens', tokenId);
 
         if (tokenData.expires > Date.now()) {
-          const newTokenData = {
+          const newTokenData: Token = {
             ...tokenData,
             expires: Date.now() + 1000 * 60 * 60,
           };
 
           try {
-            const newData = await dataLib.update(
+            const newData: Token = await dataLib.update(
               'tokens',
               tokenId,
               newTokenData
@@ -217,4 +220,4 @@ const tokenMethods: {[key: string]: Handler} = {
 const allowedMethods = ['get', 'put', 'post', 'delete'];
 const tokens = createServiceRouter(allowedMethods, tokenMethods);
 
-export {tokens};
+export {tokens, Token};
