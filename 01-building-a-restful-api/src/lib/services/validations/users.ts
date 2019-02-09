@@ -1,4 +1,4 @@
-import {equals, exists, isOfType, minLength, trim} from './index';
+import {equals, exists, isOfType, minLength, trim} from '../../validations';
 
 const validateFirstName = (firstName: string) =>
   [firstName]

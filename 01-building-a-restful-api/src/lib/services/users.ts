@@ -2,7 +2,7 @@ import dataLib from '../data';
 import helpers from '../helpers';
 import {Handler, RequestData} from '../types';
 import {User} from '../types/services/users';
-import {equals, exists, isOfType, minLength, trim} from './validations';
+import {equals, exists, isOfType, minLength, trim} from '../validations';
 
 import {createServiceRouter} from './utils/index';
 import {
