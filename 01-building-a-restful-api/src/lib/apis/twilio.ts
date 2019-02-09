@@ -3,7 +3,7 @@ import * as querystring from 'querystring';
 import * as util from 'util';
 
 import config from '../../config';
-import {exists, Invalid, trim, Valid, Validator} from '../validate';
+import {exists, Invalid, trim, Valid, Validator} from '../validations';
 
 const twilioConfig = config.apis.twilio;
 
