@@ -4,6 +4,7 @@ import {
   Invalid,
   isInstanceOf,
   isOfType,
+  maxLength,
   minLength,
   oneOf,
   trim,
@@ -53,6 +54,8 @@ const validateTimeoutSeconds = (n?: number) =>
   [n]
     .map(exists('timeoutSeconds is required'))
     .map(isOfType(['number'], 'Must be a number'))
+    .map(minLength(1, 'timeoutSeconds must be at least 1 second'))
+    .map(maxLength(5, 'timeoutSeconds must be a maximum of 5 seconds'))
     .find(Boolean);
 
 const validateId = (str?: string) =>
@@ -62,6 +65,7 @@ const validateId = (str?: string) =>
     .find(Boolean);
 
 export {
+  validateId,
   validateMethod,
   validateProtocol,
   validateSuccessCodes,
