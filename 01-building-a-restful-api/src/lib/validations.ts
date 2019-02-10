@@ -58,6 +58,24 @@ const isInstanceOf: Validator<any> = (
   return isError(val) ? val : validateInstance(val);
 };
 
+const boundAbove: Validator<number | string> = (
+  bound,
+  msg = `This value is greater than ${bound}`
+) => val => {
+  const validateUpperBound = (v: Valid) => (v <= bound ? v : {error: msg});
+
+  return isError(val) ? val : validateUpperBound(val);
+};
+
+const boundBelow: Validator<number | string> = (
+  bound,
+  msg = `This value is less than ${bound}`
+) => val => {
+  const validateLowerBound = (v: Valid) => (v >= bound ? v : {error: msg});
+
+  return isError(val) ? val : validateLowerBound(val);
+};
+
 const maxLength: Validator<number> = (
   length = 0,
   msg = `This value is greater than ${length} characters long`
@@ -83,7 +101,7 @@ const hasLength: Validator<number> = (
   msg = `This value is not of length ${length}`
 ) => val => {
   const validateMinLength = (v: Valid) =>
-    v.length >= length ? v : {error: msg};
+    v.length === length ? v : {error: msg};
 
   return isError(val) ? val : validateMinLength(val);
 };
@@ -98,6 +116,8 @@ const equals: Validator<any> = (
 };
 
 export {
+  boundAbove,
+  boundBelow,
   equals,
   exists,
   hasLength,

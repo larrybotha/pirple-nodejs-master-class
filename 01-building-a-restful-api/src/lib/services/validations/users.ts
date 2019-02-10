@@ -33,7 +33,7 @@ const validatePassword = (password: string) =>
 const validateTos = (tos: string | boolean) =>
   [tos]
     .map(exists('TOS is required'))
-    .map(equals({value: 'true'}, 'TOS must be true'))
+    .map(equals('true', 'TOS must be true'))
     .find(Boolean);
 
 export {
