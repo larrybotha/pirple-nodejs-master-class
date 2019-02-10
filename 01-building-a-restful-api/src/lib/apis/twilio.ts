@@ -13,6 +13,8 @@ import {
   Validator,
 } from '../validations';
 
+import {validatePhone} from '../services/validations/users';
+
 const twilioConfig = config.apis.twilio;
 
 /*
@@ -21,67 +23,65 @@ const twilioConfig = config.apis.twilio;
  * @param {object} options
  * @param {string} options.phone - the number to send an sms to
  * @param {string} options.msg - the message to send
- * @param {function} cb - the callback for success / failure in sending the sms
  *
- * @return undefined
+ * @return Promise
  */
-type SendSms = (
-  options: {phone: string; msg: string},
-  cb: (res: {ok: boolean; error?: any}) => void
-) => void;
-const sendSms: SendSms = (options, callback) => {
-  const phone = [options.phone]
-    .map(trim())
-    .map(exists('phone is required'))
-    .map(hasLength(10, 'phone must be at least 10 characters long'))
-    .find(Boolean);
-  const msg = [options.msg]
-    .map(trim())
-    .map(exists('message is required'))
-    .map(maxLength(1600, 'message must be no longer than 1600 characters long'))
-    .find(Boolean);
-  const fields = [phone, msg];
-  const invalidFields = fields.map((f: Valid | Invalid) => Boolean(f.error));
+type SendSms = (options: {phone: string; msg: string}) => Promise<any>;
+const sendSms: SendSms = options => {
+  return new Promise((resolve, reject) => {
+    const phone = validatePhone(options.phone);
+    const msg = [options.msg]
+      .map(trim())
+      .map(exists('message is required'))
+      .map(
+        maxLength(1600, 'message must be no longer than 1600 characters long')
+      )
+      .find(Boolean);
+    const fields = [phone, msg];
+    const invalidFields = fields.filter((f: Valid | Invalid) =>
+      Boolean(f.error)
+    );
 
-  if (!invalidFields.length) {
-    const payload = {
-      Body: msg,
-      From: twilioConfig.fromPhone,
-      To: `+27${phone}`,
-    };
-    const stringifiedPayload = querystring.stringify(payload);
-    const requestOptions: https.RequestOptions = {
-      auth: `${twilioConfig.sid}:${twilioConfig.token}`,
-      headers: {
-        'Content-Type': 'application/x-www-url-form-encoded',
-        'Content-length': Buffer.byteLength(stringifiedPayload),
-      },
-      hostname: 'api.twilio.com',
-      method: 'POST',
-      path: `/2010-04-01/${twilioConfig.sid}/Messages.json`,
-      protocol: 'https',
-    };
-    const request = https.request(requestOptions, res => {
-      const {statusCode} = res;
+    if (!invalidFields.length) {
+      const payload = {
+        Body: msg,
+        From: twilioConfig.fromPhone,
+        To: `+27${phone}`,
+      };
+      const stringifiedPayload = querystring.stringify(payload);
+      const requestOptions: https.RequestOptions = {
+        auth: `${twilioConfig.sid}:${twilioConfig.token}`,
+        headers: {
+          'Content-Type': 'application/x-www-url-form-encoded',
+          'Content-length': Buffer.byteLength(stringifiedPayload),
+        },
+        hostname: 'api.twilio.com',
+        method: 'POST',
+        path: `/2010-04-01/${twilioConfig.sid}/Messages.json`,
+        protocol: 'https',
+      };
 
-      if ([200, 201].indexOf(statusCode) > -1) {
-        callback({ok: true});
-      } else {
-        callback({
-          error: `Twilio responded with status code ${statusCode}`,
-          ok: false,
-        });
-      }
-    });
+      const request = https.request(requestOptions, res => {
+        const {statusCode} = res;
 
-    request.on('error', err => callback({ok: false, error: err}));
+        if ([200, 201].indexOf(statusCode) > -1) {
+          return resolve(res);
+        } else {
+          return reject(res);
+        }
+      });
 
-    // write data to request body
-    request.write(stringifiedPayload);
+      request.on('error', err => reject(err));
 
-    // execute the request
-    request.end();
-  }
+      // write data to request body
+      request.write(stringifiedPayload);
+
+      // execute the request
+      request.end();
+    } else {
+      reject({error: `Invalid sms fields: ${invalidFields.join(', ')}`});
+    }
+  });
 };
 
 export {sendSms};
