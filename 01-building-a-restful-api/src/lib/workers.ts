@@ -7,6 +7,7 @@ import * as https from 'https';
 import * as path from 'path';
 import * as url from 'url';
 
+import {sendSms} from './apis/twilio';
 import dataLib from './data';
 import helpers from './helpers';
 
@@ -27,13 +28,14 @@ const gatherAllChecks: GatherAllChecks = async () => {
     const checks: Check[] = await dataLib.list('checks');
 
     if (checks.length === 0) {
-      throw new Error('No checks');
+      // tslint:disable-next-line
+      console.log('No checks');
     }
 
     checks.map(validateCheckData);
   } catch (err) {
     // tslint:disable-next-line
-    console.log(err);
+    console.log(`Error: ${err}`);
   }
 };
 
@@ -57,13 +59,13 @@ const validateCheckData: ValidateCheckData = check => {
     successCodes,
     timeoutSeconds,
   ];
-  const invalidFields = fields.map(f => Boolean(f.error));
+  const invalidFields = fields.filter(f => Boolean(f.error));
 
-  if (!invalidFields) {
+  if (!invalidFields.length) {
     performCheck(check);
   } else {
     // tslint:disable-next-line
-    console.log(`Error: invalid fields - ${invalidFields.join(', ')}`);
+    console.log(`Error: invalid check fields - ${invalidFields.join(', ')}`);
   }
 };
 
@@ -123,16 +125,67 @@ const performCheck: PerformCheck = check => {
 };
 
 type ProcessCheckOutcome = (check: Check, checkOutcome: CheckOutcome) => void;
-const processCheckOutcome: ProcessCheckOutcome = (check, checkOutcome) => {};
+const processCheckOutcome: ProcessCheckOutcome = async (
+  check,
+  checkOutcome
+) => {
+  const {error, responseCode} = checkOutcome;
+  const {lastChecked, successCodes, state} = check;
+  // check state is up if there is no error, we have a response code, and that
+  // response code is one of the successCodes the check is configured for
+  const newCheckState =
+    !error && responseCode && successCodes.indexOf(responseCode) > -1
+      ? CheckState.Up
+      : CheckState.Down;
+  // if the check state has changed, and we have a lastChecked time, send an alert
+  const shouldSendAlert = lastChecked && newCheckState !== state;
+  const newCheckData = {
+    ...check,
+    lastChecked: Date.now(),
+    state: newCheckState,
+  };
+
+  try {
+    const result: Check = await dataLib.update(
+      'checks',
+      check.id,
+      newCheckData
+    );
+
+    if (shouldSendAlert) {
+      alertUserToStateChange(result);
+    } else {
+      // tslint:disable-next-line
+      console.log('Check state has not changed, no alert required');
+    }
+  } catch (err) {
+    // tslint:disable-next-line
+    console.log(`Error: ${JSON.stringify(err, null, 2)}`);
+  }
+};
+
+type AlertUserToStateChange = (check: Check) => void;
+const alertUserToStateChange: AlertUserToStateChange = async check => {
+  const {method, phone, protocol, state, url: checkUrl} = check;
+  const msg = `Alert: your check for ${method.toUpperCase()} ${protocol}://${checkUrl} has changed to state ${state}`;
+
+  try {
+    const result = await sendSms({phone, msg});
+
+    // tslint:disable-next-line
+    console.log(`Success, sms was sent to ${phone}`, result);
+  } catch (err) {
+    // tslint:disable-next-line
+    console.log(`Error: ${JSON.stringify(err, null, 2)}`);
+  }
+};
 
 /*
  * Execute worker process once per minute
  */
 type Loop = () => void;
 const loop: Loop = () => {
-  setInterval(() => {
-    gatherAllChecks();
-  }, 1000 * 60);
+  setInterval(gatherAllChecks, 1000 * 5);
 };
 
 type Init = () => void;
