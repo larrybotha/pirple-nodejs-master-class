@@ -52,7 +52,7 @@ const sendSms: SendSms = options => {
       const requestOptions: https.RequestOptions = {
         auth: `${twilioConfig.sid}:${twilioConfig.token}`,
         headers: {
-          'Content-Type': 'application/x-www-url-form-urlencoded',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Content-length': Buffer.byteLength(stringifiedPayload),
         },
         hostname: 'api.twilio.com',
