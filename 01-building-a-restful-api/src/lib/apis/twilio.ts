@@ -46,40 +46,53 @@ const sendSms: SendSms = options => {
       const payload = {
         Body: msg,
         From: twilioConfig.fromPhone,
-        To: `+27${phone}`,
+        To: `+27${phone.replace(/^0/, '')}`,
       };
       const stringifiedPayload = querystring.stringify(payload);
       const requestOptions: https.RequestOptions = {
         auth: `${twilioConfig.sid}:${twilioConfig.token}`,
         headers: {
-          'Content-Type': 'application/x-www-url-form-encoded',
+          'Content-Type': 'application/x-www-url-form-urlencoded',
           'Content-length': Buffer.byteLength(stringifiedPayload),
         },
         hostname: 'api.twilio.com',
         method: 'POST',
-        path: `/2010-04-01/${twilioConfig.sid}/Messages.json`,
-        protocol: 'https',
+        path: `/2010-04-01/Accounts/${twilioConfig.sid}/Messages.json`,
+        protocol: 'https:',
       };
 
       const request = https.request(requestOptions, res => {
         const {statusCode} = res;
+        let d: any[] = [];
+        res.setEncoding('utf8');
 
-        if ([200, 201].indexOf(statusCode) > -1) {
-          return resolve(res);
-        } else {
-          return reject(res);
-        }
+        res.on('data', data => {
+          d = d.concat(data);
+        });
+
+        res.on('end', (data: string) => {
+          d = d.concat(data);
+          const result = JSON.parse(d.join(''));
+
+          if ([200, 201].indexOf(statusCode) > -1) {
+            return resolve(result);
+          } else {
+            return reject(result);
+          }
+        });
       });
 
-      request.on('error', err => reject(err));
+      request.on('error', err => {
+        return reject(err);
+      });
 
       // write data to request body
-      request.write(stringifiedPayload);
+      request.end(stringifiedPayload);
 
       // execute the request
       request.end();
     } else {
-      reject({error: `Invalid sms fields: ${invalidFields.join(', ')}`});
+      reject(`Invalid sms fields: ${invalidFields.join(', ')}`);
     }
   });
 };
