@@ -9,6 +9,7 @@ import * as url from 'url';
 
 import {sendSms} from './apis/twilio';
 import dataLib from './data';
+import logsLib from './logs';
 import helpers from './helpers';
 
 import {
@@ -152,6 +153,13 @@ const processCheckOutcome: ProcessCheckOutcome = async (
       newCheckData
     );
 
+    log({
+      alert: shouldSendAlert,
+      check: result,
+      outcome: checkOutcome,
+      createdAt: Date.now(),
+    });
+
     if (shouldSendAlert) {
       alertUserToStateChange(result);
     } else {
@@ -178,6 +186,21 @@ const alertUserToStateChange: AlertUserToStateChange = async check => {
     // tslint:disable-next-line
     console.log(`Error: send sms`, err);
   }
+};
+
+type Log = (options: {
+  alert: boolean;
+  check: Check;
+  outcome: CheckOutcome;
+  createdAt: number;
+}) => void;
+const log: Log = async options => {
+  const logString = JSON.stringify(options);
+  const filename = options.check.id;
+
+  try {
+    const result = await logsLib.append(filename, logString);
+  } catch (err) {}
 };
 
 /*
