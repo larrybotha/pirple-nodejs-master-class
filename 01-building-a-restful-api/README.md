@@ -233,3 +233,9 @@ try {
     manage errors
 - The stream object has a `.write` method that the payload is passed to
 - `reqStream.end()` makes the stream perform the request
+- to read the response body from `httprs.request` one needs to build the
+    response body using `res.on('data', cb)` and `res.on('end', cb)`. One can
+    also set the encoding of the response to `utf-8` to read from the stream as
+    a string, instead of as a `Buffer`.
+- Twilio requires data to be sent as key-value pairs; i.e. form data. To do so,
+    the `Content-Type` header needs to be set to `x-www-form-urlencded`
