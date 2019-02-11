@@ -7,6 +7,7 @@
   "scripts": {
     "prestart": "rm -rf dist && npm run tsc",
     "start": "concurrently npm:watch:server npm:watch:tsc npm:watch:test",
+    "start:debug": "concurrently npm:watch:server:debug npm:watch:tsc npm:watch:test",
     "start:homework-01": "concurrently npm:watch:server:homework-01 npm:watch:tsc npm:watch:test",
     "test": "jest",
     "test:api": "npm test -- -c ./config/tests/jest.newman.js",
@@ -15,6 +16,7 @@
     "watch:test": "npm run test -- --watch",
     "watch:test:api": "npm run test:api -- --watch --runInBand",
     "watch:server": "source set-env.sh && nodemon dist/src",
+    "watch:server:debug": "source set-env.sh && nodemon --inspect dist/src",
     "watch:server:homework-01": "source set-env.sh && nodemon dist/homework-01/src"
   },
   "keywords": [],
