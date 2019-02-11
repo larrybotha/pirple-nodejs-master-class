@@ -176,7 +176,7 @@ const alertUserToStateChange: AlertUserToStateChange = async check => {
     console.log(`Success, sms was sent to ${phone}`, result);
   } catch (err) {
     // tslint:disable-next-line
-    console.log(`Error: ${JSON.stringify(err, null, 2)}`);
+    console.log(`Error: send sms`, err);
   }
 };
 
