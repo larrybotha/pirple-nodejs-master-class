@@ -9,8 +9,8 @@ import * as url from 'url';
 
 import {sendSms} from './apis/twilio';
 import dataLib from './data';
-import logsLib from './logs';
 import helpers from './helpers';
+import logsLib from './logs';
 
 import {
   validateId,
@@ -156,8 +156,8 @@ const processCheckOutcome: ProcessCheckOutcome = async (
     log({
       alert: shouldSendAlert,
       check: result,
-      outcome: checkOutcome,
       createdAt: Date.now(),
+      outcome: checkOutcome,
     });
 
     if (shouldSendAlert) {

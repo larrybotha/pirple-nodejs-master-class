@@ -3,8 +3,8 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import * as zlib from 'zlib';
 import {promisify} from 'util';
+import * as zlib from 'zlib';
 
 const asyncOpen = promisify(fs.open);
 const asyncClose = promisify(fs.close);
