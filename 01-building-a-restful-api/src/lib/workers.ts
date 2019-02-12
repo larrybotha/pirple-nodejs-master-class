@@ -84,7 +84,7 @@ const performCheck: PerformCheck = check => {
   };
   let outcomeSent = false;
 
-  const parsedUrl = url.parse(`${protocol}://${url}`);
+  const parsedUrl = url.parse(`${protocol}://${checkUrl}`);
   const {hostname, path: checkPath} = parsedUrl;
   const requestOptions: http.RequestOptions = {
     hostname,
@@ -156,8 +156,8 @@ const processCheckOutcome: ProcessCheckOutcome = async (
     log({
       alert: shouldSendAlert,
       check: result,
-      createdAt: Date.now(),
       outcome: checkOutcome,
+      timestamp: Date.now(),
     });
 
     if (shouldSendAlert) {
@@ -192,7 +192,7 @@ type Log = (options: {
   alert: boolean;
   check: Check;
   outcome: CheckOutcome;
-  createdAt: number;
+  timestamp: number;
 }) => void;
 const log: Log = async options => {
   const logString = JSON.stringify(options);
@@ -200,7 +200,10 @@ const log: Log = async options => {
 
   try {
     const result = await logsLib.append(filename, logString);
-  } catch (err) {}
+  } catch (err) {
+    // tslint:disable-next-line
+    console.log(err);
+  }
 };
 
 /*
