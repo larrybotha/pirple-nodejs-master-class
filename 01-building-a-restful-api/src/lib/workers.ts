@@ -214,6 +214,20 @@ const loop: Loop = () => {
   setInterval(gatherAllChecks, 1000 * 5);
 };
 
+/*
+ * Rotate / compress logs
+ */
+type RotateLogs = () => void;
+const rotateLogs = () => {};
+
+/*
+ * Rotate logs once a day
+ */
+type RotateLogsLoops = () => void;
+const rotateLogsLoop = () => {
+  setInterval(rotateLogs, 1000 * 60 * 60 * 24);
+};
+
 type Init = () => void;
 const init: Init = () => {
   // create all checkes
@@ -221,6 +235,10 @@ const init: Init = () => {
 
   // create a loop so checks will continue to be run
   loop();
+
+  rotateLogs();
+
+  rotateLogsLoop();
 };
 
 interface Workers {
