@@ -218,7 +218,22 @@ const loop: Loop = () => {
  * Rotate / compress logs
  */
 type RotateLogs = () => void;
-const rotateLogs = () => {};
+const rotateLogs = async () => {
+  try {
+    const logs = await logsLib.list(false);
+
+    logs.map(async logFile => {
+      const logId = logFile.replace('.log', '');
+      const newLogId = `${logId}-${Date.now()}`;
+
+      await logsLib.compress(logId, newLogId);
+      await logsLib.truncate(logId);
+    });
+  } catch (err) {
+    // tslint:disable-next-line
+    console.log(err);
+  }
+};
 
 /*
  * Rotate logs once a day
