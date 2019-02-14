@@ -196,10 +196,10 @@ type Log = (options: {
 }) => void;
 const log: Log = async options => {
   const logString = JSON.stringify(options);
-  const filename = options.check.id;
+  const logId = options.check.id;
 
   try {
-    const result = await logsLib.append(filename, logString);
+    await logsLib.append(logId, logString);
   } catch (err) {
     // tslint:disable-next-line
     console.log(err);
@@ -220,14 +220,18 @@ const loop: Loop = () => {
 type RotateLogs = () => void;
 const rotateLogs = async () => {
   try {
-    const logs = await logsLib.list(false);
+    const logIds = await logsLib.list(false);
 
-    logs.map(async logFile => {
-      const logId = logFile.replace('.log', '');
+    logIds.map(async logId => {
       const newLogId = `${logId}-${Date.now()}`;
 
-      await logsLib.compress(logId, newLogId);
-      await logsLib.truncate(logId);
+      try {
+        await logsLib.compress(logId, newLogId);
+        await logsLib.truncate(logId);
+      } catch (err) {
+        // tslint:disable-next-line
+        console.log(err);
+      }
     });
   } catch (err) {
     // tslint:disable-next-line
