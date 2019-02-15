@@ -20,6 +20,8 @@
 - [Users service](#users-service)
 - [Tokens service](#tokens-service)
 - [Twilio helper](#twilio-helper)
+- [Logging to the filesystem](#logging-to-the-filesystem)
+- [Logging to the console](#logging-to-the-console)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -239,3 +241,26 @@ try {
     a string, instead of as a `Buffer`.
 - Twilio requires data to be sent as key-value pairs; i.e. form data. To do so,
     the `Content-Type` header needs to be set to `x-www-form-urlencded`
+
+## Logging to the filesystem
+
+- Node's `zlib` module allows for compressing and deflating file content
+- we use `zlib.gzip` to get a `Buffer` of compressed data. We can the use
+    `Buffer.toString('base64')` to base64-encode the data
+- `zlib.unzip` deflates compressed zip data
+
+## Logging to the console
+
+- to debug any Node module, start an application using
+    `NODE_DEBUG=[moduleName]`, e.g. `NODE_DEBUG=http node src/` to debug the
+    `http` module. Every time the `http` module is used, it will log details on
+    that usage
+- to set debug for one's own modules:
+
+    ```javascript
+    // my-module.js
+    const {debuglog} = require('util')
+    const debug = debuglog('my-module')
+
+    debug('log this message');
+    ```
