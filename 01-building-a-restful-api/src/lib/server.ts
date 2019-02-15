@@ -8,12 +8,14 @@ import * as https from 'https';
 import * as path from 'path';
 import {StringDecoder} from 'string_decoder';
 import * as url from 'url';
+import {debuglog} from 'util';
 
 import config from '../config';
 import helpers from './helpers';
 import router from './router';
 import {Handler, RequestData} from './types';
 
+const debug = debuglog('server');
 const {httpPort, httpsPort, envName} = config;
 
 const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
@@ -54,8 +56,11 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
       // return the responseData as a string
       res.end(JSON.stringify(responseData));
 
-      // tslint:disable-next-line
-      console.log('responded with', responseData);
+      const logColour = /^2/.test(`${statusCode}`)
+        ? '\x1b[32m%s\x1b[0m'
+        : '\x1b[31m%s\x1b[0m';
+
+      debug(logColour, `${method.toUpperCase()}/${trimmedPath} ${statusCode}`);
     });
   });
 };
@@ -65,7 +70,10 @@ const init = () => {
 
   httpServer.listen(httpPort, () => {
     // tslint:disable-next-line
-    console.log(`server started at localhost:${httpPort} in ${envName} mode`);
+    console.log(
+      '\x1b[36m%s\x1b[0m',
+      `server started at localhost:${httpPort} in ${envName} mode`
+    );
   });
 
   const httpsServerOptions: https.ServerOptions = {
@@ -79,7 +87,10 @@ const init = () => {
 
   httpsServer.listen(httpsPort, () => {
     // tslint:disable-next-line
-    console.log(`server started at localhost:${httpsPort} in ${envName} mode`);
+    console.log(
+      '\x1b[35m%s\x1b[0m',
+      `server started at localhost:${httpsPort} in ${envName} mode`
+    );
   });
 };
 

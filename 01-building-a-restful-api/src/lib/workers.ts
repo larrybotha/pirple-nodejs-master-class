@@ -6,6 +6,7 @@ import * as http from 'http';
 import * as https from 'https';
 import * as path from 'path';
 import * as url from 'url';
+import {debuglog} from 'util';
 
 import {sendSms} from './apis/twilio';
 import dataLib from './data';
@@ -23,6 +24,13 @@ import {
 import {validatePhone} from './services/validations/users';
 import {Check, CheckState} from './types/services/checks';
 
+/*
+ * Configure debug logs for this file
+ *
+ * To enable debugging, run the app with NODE_DEBUG=workers
+ */
+const debug = debuglog('workers');
+
 type GatherAllChecks = () => void;
 const gatherAllChecks: GatherAllChecks = async () => {
   try {
@@ -30,13 +38,13 @@ const gatherAllChecks: GatherAllChecks = async () => {
 
     if (checks.length === 0) {
       // tslint:disable-next-line
-      console.log('No checks');
+      debug('No checks');
     }
 
     checks.map(validateCheckData);
   } catch (err) {
     // tslint:disable-next-line
-    console.log(`Error: ${err}`);
+    debug(`Error: ${err}`);
   }
 };
 
@@ -66,7 +74,7 @@ const validateCheckData: ValidateCheckData = check => {
     performCheck(check);
   } else {
     // tslint:disable-next-line
-    console.log(`Error: invalid check fields - ${invalidFields.join(', ')}`);
+    debug(`Error: invalid check fields - ${invalidFields.join(', ')}`);
   }
 };
 
@@ -164,11 +172,11 @@ const processCheckOutcome: ProcessCheckOutcome = async (
       alertUserToStateChange(result);
     } else {
       // tslint:disable-next-line
-      console.log('Check state has not changed, no alert required');
+      debug('Check state has not changed, no alert required');
     }
   } catch (err) {
     // tslint:disable-next-line
-    console.log(`Error: ${JSON.stringify(err, null, 2)}`);
+    debug(`Error: ${JSON.stringify(err, null, 2)}`);
   }
 };
 
@@ -181,10 +189,10 @@ const alertUserToStateChange: AlertUserToStateChange = async check => {
     const result = await sendSms({phone, msg});
 
     // tslint:disable-next-line
-    console.log(`Success, sms was sent to ${phone}`, result);
+    debug(`Success, sms was sent to ${phone}`, result);
   } catch (err) {
     // tslint:disable-next-line
-    console.log(`Error: send sms`, err);
+    debug(`Error: send sms`, err);
   }
 };
 
@@ -202,7 +210,7 @@ const log: Log = async options => {
     await logsLib.append(logId, logString);
   } catch (err) {
     // tslint:disable-next-line
-    console.log(err);
+    debug(err);
   }
 };
 
@@ -211,7 +219,7 @@ const log: Log = async options => {
  */
 type Loop = () => void;
 const loop: Loop = () => {
-  setInterval(gatherAllChecks, 1000 * 5);
+  setInterval(gatherAllChecks, 1000 * 60);
 };
 
 /*
@@ -230,12 +238,12 @@ const rotateLogs = async () => {
         await logsLib.truncate(logId);
       } catch (err) {
         // tslint:disable-next-line
-        console.log(err);
+        debug(err);
       }
     });
   } catch (err) {
     // tslint:disable-next-line
-    console.log(err);
+    debug(err);
   }
 };
 
@@ -249,6 +257,17 @@ const rotateLogsLoop = () => {
 
 type Init = () => void;
 const init: Init = () => {
+  /*
+   * Log to console in yellow
+   *
+   * %s indicates where the following argument will be interpolated in the
+   * '\x1b[33m%s\x1b[0m' command
+   *
+   * 33 indicates yellow, and can be changed to output other colours
+   */
+  // tslint:disable-next-line
+  console.log('\x1b[33m%s\x1b[0m', 'Background workers are running');
+
   // create all checkes
   gatherAllChecks();
 
