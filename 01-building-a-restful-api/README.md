@@ -248,6 +248,8 @@ try {
 - we use `zlib.gzip` to get a `Buffer` of compressed data. We can the use
     `Buffer.toString('base64')` to base64-encode the data
 - `zlib.unzip` deflates compressed zip data
+- `new Buffer()` is deprecated, and seems to have been replaced with
+    `Buffer.from()`
 
 ## Logging to the console
 
