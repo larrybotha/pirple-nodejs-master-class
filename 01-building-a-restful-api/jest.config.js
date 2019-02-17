@@ -4,8 +4,5 @@ const tscProject = require('../config/jest.tsc');
 module.exports = {
   rootDir: 'src',
 
-  projects: [
-    tslintProject,
-    tscProject,
-  ],
+  projects: [tscProject, tslintProject],
 };
