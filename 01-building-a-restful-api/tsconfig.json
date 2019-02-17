@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.json",
-  "include": ["src/**/*", "homework-01/**/*"],
+  "include": ["src/**/*", "homework-01/**/*", "homework-02/src/**/*"],
   "compilerOptions": {
     "outDir": "./dist",
     "module": "commonjs",
