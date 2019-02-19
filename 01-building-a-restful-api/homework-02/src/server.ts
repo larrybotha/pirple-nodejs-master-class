@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
 
@@ -12,9 +13,12 @@ const init: Init = () => {
     console.log(`listening on ${config.http.port}`);
   });
 
-  const httpsServer = https.createServer();
+  const httpsServer = https.createServer({
+    cert: fs.readFileSync(config.https.sslCertPath),
+    key: fs.readFileSync(config.https.sslKeyPath),
+  });
 
-  httpServer.listen(config.https.port, () => {
+  httpsServer.listen(config.https.port, () => {
     // tslint:disable-next-line
     console.log(`listening on ${config.https.port}`);
   });
