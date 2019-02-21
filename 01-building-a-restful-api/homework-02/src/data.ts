@@ -10,8 +10,8 @@ type Create = (filePath: string, data: any) => Promise<string>;
 const create: Create = async (filePath, data) => {
   try {
     const fileDescriptor = await asyncOpen(filePath, 'wx');
-
     await asyncWriteFile(fileDescriptor, JSON.stringify(data), 'utf8');
+    await asyncClose(fileDescriptor);
 
     return data;
   } catch (err) {
@@ -24,7 +24,6 @@ const read: Read = async filePath => {
   try {
     const fileDescriptor = await asyncOpen(filePath, 'r');
     const resultBuffer = await asyncReadFile(fileDescriptor);
-
     await asyncClose(fileDescriptor);
 
     return JSON.parse(resultBuffer.toString());
