@@ -1,0 +1,3 @@
+const notFound = {};
+
+export {notFound};

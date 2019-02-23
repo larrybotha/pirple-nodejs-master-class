@@ -1,0 +1,3 @@
+const ping = {};
+
+export {ping};
