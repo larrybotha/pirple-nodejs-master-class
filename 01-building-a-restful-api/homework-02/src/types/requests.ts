@@ -5,6 +5,11 @@ interface RequestData {
   method: string;
   pathname: string;
   payload?: any;
+  query?: object;
 }
 
-export {RequestData};
+interface RequestPayload {
+  [key: string]: any;
+}
+
+export {RequestData, RequestPayload};

@@ -6,7 +6,7 @@ interface Response {
 }
 
 interface ResponseSuccess extends Response {
-  result: {
+  result?: {
     offset?: number;
     total?: number;
     [key: string]: any;

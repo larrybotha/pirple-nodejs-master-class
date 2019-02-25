@@ -1,9 +1,12 @@
 import * as http from 'http';
 
-import {RequestData} from './requests';
-import {ResponseSuccess, ResponseError} from './responses';
+import {RequestData, RequestPayload} from './requests';
+import {ResponseError, ResponseSuccess} from './responses';
 
-type ServiceMethod = (req: RequestData) => ResponseSuccess | ResponseError;
+type ServiceMethod = (
+  req: RequestData,
+  payload: RequestPayload
+) => ResponseSuccess | ResponseError;
 
 interface Service {
   delete?: ServiceMethod;
@@ -11,6 +14,7 @@ interface Service {
   patch?: ServiceMethod;
   post?: ServiceMethod;
   put?: ServiceMethod;
+  [key: string]: ServiceMethod;
 }
 
 export {RequestData, ServiceMethod, Service};
