@@ -1,6 +1,16 @@
-import {RequestData} from '../types/requests';
-import {Service} from '../types/services';
+import {ResponseError} from '../types/responses';
+import {ServiceMethod} from '../types/services';
 
-const notFound = (req: RequestData) => {};
+import {createErrorResponse} from './utils';
+
+const notFound: ServiceMethod = req => {
+  const response = createErrorResponse({
+    instance: req.pathname,
+    status: 404,
+    title: 'Not found',
+  });
+
+  return response;
+};
 
 export {notFound};
