@@ -1,10 +1,13 @@
-import {ping} from './ping';
-import {notFound} from './not-found';
+import {ResponseError, ResponseSuccess} from '../types/responses';
+import {Service, ServiceMethod} from '../types/services';
 
-type Service = (a: any) => void;
-const services = {
+import {ping} from './ping';
+
+interface Services {
+  [key: string]: ServiceMethod;
+}
+const services: Services = {
   ping,
-  notFound,
 };
 
 export {services};
