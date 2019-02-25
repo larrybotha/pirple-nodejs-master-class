@@ -1,33 +1,48 @@
-import {Service} from '../../types/services';
-import {ResponseSuccess, ResponseError} from '../../types/responses';
+import {ResponseError, ResponseSuccess} from '../../types/responses';
+import {Service, ServiceMethod} from '../../types/services';
+
+import {forbidden} from '../forbidden';
 
 type CreateService = (
   allowedMethods: string[],
-  serviceMethods: Service
-) => void;
-const createService: CreateService = (allowedMethods, serviceMethods) => {};
+  service: Service
+) => ServiceMethod;
+const createService: CreateService = (allowedMethods, service) => (
+  req,
+  payload
+) => {
+  const method = req.method.toLowerCase();
 
-type CreateSuccessResponseParam = Exclude<ResponseSuccess, 'ok'>;
+  if (allowedMethods.indexOf(method) > -1) {
+    const serviceMethod: ServiceMethod = service[method];
+
+    return serviceMethod(req, payload);
+  } else {
+    return forbidden(req, payload);
+  }
+};
+
+type CreateSuccessResponseParam = Pick<
+  ResponseSuccess,
+  Exclude<keyof ResponseSuccess, 'ok'>
+>;
+
 type CreateSuccessResponse = (
   options: CreateSuccessResponseParam
 ) => ResponseSuccess;
 const createSuccessResponse: CreateSuccessResponse = options => {
-  return {
-    ...options,
-    ok: true,
-  };
+  return {...options, ok: true};
 };
 
-type CreateErrorResponseParam = Exclude<ResponseError, 'ok'>;
+type CreateErrorResponseParam = Pick<
+  ResponseError,
+  Exclude<keyof ResponseError, 'ok'>
+>;
 type CreateErrorResponse = (options: CreateErrorResponseParam) => ResponseError;
 const createErrorResponse: CreateErrorResponse = options => {
   const type = options.type || 'about:blank';
 
-  return {
-    ...options,
-    type,
-    ok: false,
-  };
+  return {...options, ok: false, type};
 };
 
 export {createService, createSuccessResponse, createErrorResponse};
