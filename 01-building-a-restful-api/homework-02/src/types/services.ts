@@ -3,10 +3,10 @@ import * as http from 'http';
 import {RequestData, RequestPayload} from './requests';
 import {ResponseError, ResponseMetadata, ResponseSuccess} from './responses';
 
-type ServiceMethod = (
+type ServiceMethod<Entity = null> = (
   req: RequestData,
   payload: RequestPayload
-) => ResponseError | ResponseSuccess;
+) => ResponseError | ResponseSuccess<Entity>;
 
 interface Service {
   delete?: ServiceMethod;

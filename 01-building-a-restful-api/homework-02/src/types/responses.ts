@@ -7,7 +7,7 @@ interface ResponseMetadata {
   };
 }
 
-type ResponseDataSuccess = object | object[];
+type ResponseDataSuccess<Entity = null> = Entity | Entity[];
 interface ResponseDataError {
   detail?: string;
   errors?: any[];
@@ -26,8 +26,8 @@ interface ResponseError extends Response {
   payload: ResponseDataError;
 }
 
-interface ResponseSuccess extends Response {
-  payload?: ResponseDataSuccess;
+interface ResponseSuccess<Entity = null> extends Response {
+  payload?: ResponseDataSuccess<Entity>;
 }
 
 export {
