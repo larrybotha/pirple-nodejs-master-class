@@ -1,12 +1,12 @@
 import * as http from 'http';
 
 import {RequestData, RequestPayload} from './requests';
-import {ResponseError, ResponseSuccess} from './responses';
+import {ResponseError, ResponseMetadata, ResponseSuccess} from './responses';
 
 type ServiceMethod = (
   req: RequestData,
   payload: RequestPayload
-) => ResponseSuccess | ResponseError;
+) => ResponseError | ResponseSuccess;
 
 interface Service {
   delete?: ServiceMethod;

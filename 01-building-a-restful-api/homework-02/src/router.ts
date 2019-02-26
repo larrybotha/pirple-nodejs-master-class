@@ -19,15 +19,15 @@ const router: Router = (req, res) => {
   });
 
   req.on('end', () => {
-    const payload = data ? JSON.parse(data) : null;
-    const responseData = service(
+    const requestPayload = data ? JSON.parse(data) : null;
+    const {payload, metadata} = service(
       {headers, method: method.toUpperCase(), pathname, query},
-      payload
+      requestPayload
     );
 
     res.setHeader('Content-type', 'application/json');
-    res.writeHead(responseData.status);
-    res.end(JSON.stringify(responseData));
+    res.writeHead(metadata.status);
+    res.end(payload ? JSON.stringify(payload) : null);
   });
 };
 

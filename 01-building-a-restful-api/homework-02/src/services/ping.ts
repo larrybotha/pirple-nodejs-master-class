@@ -1,12 +1,10 @@
 import {Service} from '../types/services';
 
-import {createService, createSuccessResponse} from './utils';
+import {createService} from './utils';
 
 const pingMethods: Service = {
   get: () => {
-    const response = createSuccessResponse({status: 200});
-
-    return response;
+    return {metadata: {status: 200}};
   },
 };
 

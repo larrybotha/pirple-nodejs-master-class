@@ -1,24 +1,39 @@
 import * as http from 'http';
 
-interface Response {
-  ok: boolean;
+interface ResponseMetadata {
   status: number;
+  headers?: {
+    [key: string]: string;
+  };
+}
+
+type ResponseDataSuccess = object | object[];
+interface ResponseDataError {
+  detail?: string;
+  errors?: any[];
+  // pathname, essentially
+  instance?: string;
+  status: number;
+  title: string;
+  type?: string;
+}
+
+interface Response {
+  metadata: ResponseMetadata;
+}
+
+interface ResponseError extends Response {
+  payload: ResponseDataError;
 }
 
 interface ResponseSuccess extends Response {
-  result?: {
-    offset?: number;
-    total?: number;
-    [key: string]: any;
-  };
-}
-interface ResponseError extends Response {
-  type?: string;
-  title: string;
-  detail?: string;
-  // pathname, essentially
-  instance?: string;
-  errors?: any[];
+  payload?: ResponseDataSuccess;
 }
 
-export {ResponseSuccess, ResponseError};
+export {
+  ResponseDataError,
+  ResponseDataSuccess,
+  ResponseMetadata,
+  ResponseSuccess,
+  ResponseError,
+};

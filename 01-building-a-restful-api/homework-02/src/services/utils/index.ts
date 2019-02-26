@@ -1,4 +1,8 @@
-import {ResponseError, ResponseSuccess} from '../../types/responses';
+import {
+  ResponseDataError,
+  ResponseError,
+  ResponseMetadata,
+} from '../../types/responses';
 import {Service, ServiceMethod} from '../../types/services';
 
 import {forbidden} from '../forbidden';
@@ -22,27 +26,14 @@ const createService: CreateService = (allowedMethods, service) => (
   }
 };
 
-type CreateSuccessResponseParam = Pick<
-  ResponseSuccess,
-  Exclude<keyof ResponseSuccess, 'ok'>
->;
+type CreateErrorResponse = (
+  payload: ResponseDataError,
+  metadata: ResponseMetadata
+) => ResponseError;
+const createErrorResponse: CreateErrorResponse = (payload, metadata) => {
+  const type = payload.type || 'about:blank';
 
-type CreateSuccessResponse = (
-  options: CreateSuccessResponseParam
-) => ResponseSuccess;
-const createSuccessResponse: CreateSuccessResponse = options => {
-  return {...options, ok: true};
+  return {payload: {...payload, type}, metadata};
 };
 
-type CreateErrorResponseParam = Pick<
-  ResponseError,
-  Exclude<keyof ResponseError, 'ok'>
->;
-type CreateErrorResponse = (options: CreateErrorResponseParam) => ResponseError;
-const createErrorResponse: CreateErrorResponse = options => {
-  const type = options.type || 'about:blank';
-
-  return {...options, ok: false, type};
-};
-
-export {createService, createSuccessResponse, createErrorResponse};
+export {createService, createErrorResponse};
