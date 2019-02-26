@@ -27,7 +27,7 @@ interface ResponseError extends Response {
 }
 
 interface ResponseSuccess<Entity = null> extends Response {
-  payload?: ResponseDataSuccess<Entity>;
+  payload?: ResponseDataSuccess<Entity | Entity[]>;
 }
 
 export {

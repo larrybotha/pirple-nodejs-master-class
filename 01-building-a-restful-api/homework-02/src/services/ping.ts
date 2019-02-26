@@ -1,15 +1,15 @@
-import {Service} from '../types/services';
+import {Service, ServiceMethod} from '../types/services';
 
 import {createService} from './utils';
 
-const pingMethods: Service = {
+const pingMethods: Service<string> = {
   get: () => {
-    return {metadata: {status: 200}};
+    return {metadata: {status: 200}, payload: 'ok'};
   },
 };
 
 const allowedMethods = ['get'];
 
-const ping = createService(allowedMethods, pingMethods);
+const ping: ServiceMethod<string> = createService(allowedMethods, pingMethods);
 
 export {ping};

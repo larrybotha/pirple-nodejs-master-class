@@ -3,18 +3,18 @@ import * as http from 'http';
 import {RequestData, RequestPayload} from './requests';
 import {ResponseError, ResponseMetadata, ResponseSuccess} from './responses';
 
-type ServiceMethod<Entity = null> = (
+type ServiceMethod<Entity = any> = (
   req: RequestData,
   payload: RequestPayload
 ) => ResponseError | ResponseSuccess<Entity>;
 
-interface Service {
-  delete?: ServiceMethod;
-  get?: ServiceMethod;
-  patch?: ServiceMethod;
-  post?: ServiceMethod;
-  put?: ServiceMethod;
-  [key: string]: ServiceMethod;
+interface Service<Entity = any> {
+  delete?: ServiceMethod<Entity>;
+  get?: ServiceMethod<Entity>;
+  patch?: ServiceMethod<Entity>;
+  post?: ServiceMethod<Entity>;
+  put?: ServiceMethod<Entity>;
+  [key: string]: ServiceMethod<Entity>;
 }
 
 export {RequestData, ServiceMethod, Service};
