@@ -3,6 +3,7 @@ import * as url from 'url';
 
 import {services} from './services';
 import {notFound} from './services/not-found';
+import {safeStringify} from './helpers';
 
 type Router = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 const router: Router = (req, res) => {
@@ -27,7 +28,7 @@ const router: Router = (req, res) => {
 
     res.setHeader('Content-type', 'application/json');
     res.writeHead(metadata.status);
-    res.end(payload ? JSON.stringify(payload) : null);
+    res.end(payload ? safeStringify(payload) : null);
   });
 };
 
