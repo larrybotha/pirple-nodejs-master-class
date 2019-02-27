@@ -1,9 +1,9 @@
 import * as http from 'http';
 import * as url from 'url';
 
+import {safeStringify} from './helpers';
 import {services} from './services';
 import {notFound} from './services/not-found';
-import {safeStringify} from './helpers';
 
 type Router = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 const router: Router = (req, res) => {
