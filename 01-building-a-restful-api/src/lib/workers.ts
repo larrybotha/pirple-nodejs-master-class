@@ -101,8 +101,8 @@ const performCheck: PerformCheck = check => {
     protocol: `${protocol}:`,
     timeout: timeoutSeconds * 1000,
   };
-  const httpModule = protocol === 'http' ? http : https;
-  const req = httpModule.request(requestOptions, res => {
+  const request = protocol === 'http' ? http.request : https.request;
+  const req = request(requestOptions, res => {
     const {statusCode} = res;
     checkOutcome.responseCode = statusCode;
 

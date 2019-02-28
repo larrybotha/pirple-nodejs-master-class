@@ -93,7 +93,7 @@ const tokenMethods: {[key: string]: Handler} = {
     try {
       const tokenData: Token = await dataLib.read(
         'tokens',
-        typeof token === 'string' ? token : token[0]
+        typeof token === 'string' ? token : (token || [])[0]
       );
 
       cb(200, tokenData);
