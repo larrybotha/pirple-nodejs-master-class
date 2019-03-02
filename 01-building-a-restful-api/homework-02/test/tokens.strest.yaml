@@ -1,0 +1,15 @@
+version: 2
+
+variables:
+  endpoint: /tokens
+
+requests:
+  tokens_create:
+    log: true
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: POST
+      postData:
+        mimeType: application/json
+        text:
+          test: 1

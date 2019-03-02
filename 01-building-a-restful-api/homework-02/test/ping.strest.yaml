@@ -1,0 +1,39 @@
+version: 2
+
+variables:
+  endpoint: /ping
+
+requests:
+  ping_responds_to_get:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: headers['content-type']
+        expect: 'application/json'
+
+  ping_forbids_post:
+    request:
+      url: <$ baseUrl $><$ endpoint $>
+      method: POST
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  ping_forbids_put:
+    request:
+      url: <$ baseUrl $><$ endpoint $>
+      method: PUT
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  ping_forbids_delete:
+    request:
+      url: <$ baseUrl $><$ endpoint $>
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 403
