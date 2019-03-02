@@ -2,3 +2,4 @@
 !.data/**/.gitkeep
 .logs
 !.logs/**/.gitkeep
+strest_history.json
