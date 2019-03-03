@@ -11,6 +11,7 @@
     "start:debug": "concurrently npm:watch:server:debug npm:watch:tsc npm:watch:test",
     "start:homework-01": "concurrently npm:watch:server:homework-01 npm:watch:tsc npm:watch:test",
     "start:homework-02": "concurrently npm:watch:server:homework-02 npm:watch:tsc npm:watch:test",
+    "start:homework-02:debug": "concurrently npm:watch:server:homework-02:debug npm:watch:tsc npm:watch:test",
     "test": "jest",
     "test:api": "npm test -- -c ./config/tests/jest.newman.js",
     "tsc": "tsc",
@@ -21,7 +22,8 @@
     "watch:server": "source set-env.sh && nodemon dist/src",
     "watch:server:debug": "source set-env.sh .env && nodemon --inspect dist/src",
     "watch:server:homework-01": "source set-env.sh .env && nodemon dist/homework-01/src",
-    "watch:server:homework-02": "source set-env.sh ./homework-02/.env && nodemon dist/homework-02/src"
+    "watch:server:homework-02": "source set-env.sh ./homework-02/.env && nodemon dist/homework-02/src",
+    "watch:server:homework-02:debug": "source set-env.sh ./homework-02/.env && nodemon --inspect dist/homework-02/src"
   },
   "keywords": [],
   "author": "",
