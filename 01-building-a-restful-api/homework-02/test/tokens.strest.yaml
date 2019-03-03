@@ -9,7 +9,6 @@ requests:
     request:
       url: <$ globalBaseUrl $><$ endpoint $>
       method: POST
-      postData:
-        mimeType: application/json
-        text:
-          test: 1
+    validate:
+    - jsonpath: content.id
+      type: string
