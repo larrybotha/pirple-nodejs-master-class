@@ -20,7 +20,7 @@ const router: Router = (req, res) => {
   });
 
   req.on('end', () => {
-    const requestPayload = data ? JSON.parse(data) : null;
+    const requestPayload = data ? JSON.parse(data) : {};
     const {payload, metadata} = service(
       {headers, method: method.toUpperCase(), pathname, query},
       requestPayload

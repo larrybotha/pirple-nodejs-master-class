@@ -28,9 +28,12 @@ const createService: CreateService = (allowedMethods, service) => (
 
 type CreateErrorResponse = (
   payload: ResponseDataError,
-  metadata: ResponseMetadata
+  metadata?: ResponseMetadata
 ) => ResponseError;
-const createErrorResponse: CreateErrorResponse = (payload, metadata) => {
+const createErrorResponse: CreateErrorResponse = (
+  payload,
+  metadata = {status: payload.status}
+) => {
   const type = payload.type || 'about:blank';
 
   return {payload: {...payload, type}, metadata};

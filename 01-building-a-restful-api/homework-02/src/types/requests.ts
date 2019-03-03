@@ -1,10 +1,10 @@
 import * as http from 'http';
 
-interface RequestData {
+interface RequestData<Payload = any> {
   headers: http.IncomingHttpHeaders;
   method: string;
   pathname: string;
-  payload?: any;
+  payload?: Payload;
   query?: object;
 }
 
