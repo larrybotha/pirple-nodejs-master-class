@@ -5,10 +5,40 @@ variables:
 
 requests:
   tokens_create:
-    log: true
     request:
       url: <$ globalBaseUrl $><$ endpoint $>
       method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          password: 'password'
+          email: 'test@example.com'
     validate:
+    - jsonpath: status
+      expect: 201
     - jsonpath: content.id
-      type: string
+      type: [string]
+
+  tokens_create_missing_email:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          password: 'password'
+    validate:
+    - jsonpath: status
+      expect: 400
+
+  tokens_create_missing_password:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: 'test@example.com'
+    validate:
+    - jsonpath: status
+      expect: 400
