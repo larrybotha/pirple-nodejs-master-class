@@ -2,11 +2,11 @@ import {
   createValidator,
   exists,
   hasMinLength,
-  Validator,
   Validation,
+  Validator,
 } from './index';
 
-type ValidatePassword = (value: string) => Validation[];
+type ValidatePassword = (value: string) => Validation;
 const validatePassword: ValidatePassword = value => {
   const name = 'password';
   const length = 8;
@@ -18,14 +18,17 @@ const validatePassword: ValidatePassword = value => {
         {length},
         `${name} must be at least ${length} characters long`
       )
-    );
+    )
+    .find(Boolean);
 };
 
-type ValidateEmail = (value: string) => Validation[];
+type ValidateEmail = (value: string) => Validation;
 const validateEmail: ValidateEmail = value => {
   const name = 'email';
 
-  return createValidator(value, name).map(exists(`${name} is required`));
+  return createValidator(value, name)
+    .map(exists(`${name} is required`))
+    .find(Boolean);
 };
 
 export {validateEmail, validatePassword};
