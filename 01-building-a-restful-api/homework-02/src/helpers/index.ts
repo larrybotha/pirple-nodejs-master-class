@@ -1,9 +1,10 @@
 const safeStringify = (data: any) => {
+const safeJSONParse = (data: any) => {
   try {
-    return JSON.stringify(data);
+    return JSON.parse(data);
   } catch (err) {
-    return undefined;
+    return {};
   }
 };
 
-export {safeStringify};
+export {safeJSONParse};
