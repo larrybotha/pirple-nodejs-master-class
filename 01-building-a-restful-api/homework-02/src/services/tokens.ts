@@ -1,32 +1,35 @@
-import {RequestData} from '../types/requests';
-import {Service, ServiceMethod} from '../types/services';
 import {Token} from '../types/entities/tokens';
 import {User} from '../types/entities/users';
+import {RequestData} from '../types/requests';
+import {Service, ServiceMethod} from '../types/services';
 
 import * as dataLib from '../data';
-import {hasErrors} from '../validations';
-import {validatePassword, validateEmail} from '../validations/users';
+import {hasErrors} from '../validations/index';
+import {validateEmail, validatePassword} from '../validations/users';
 
-import {createService, createErrorResponse} from './utils';
+import {createErrorResponse, createService} from './utils';
 
 interface TokenPostPayload {
   email?: User['email'];
   password?: User['password'];
 }
 
-const tokenMethods: Service<Token> = {
+// one hour expiry
+const EXPIRY_TIME = 1000 * 60 * 60;
+
+const tokenMethods: Service = {
   post: (req, payload: TokenPostPayload = {}) => {
-    debugger;
-    const password = validatePassword(payload.password).find(Boolean);
-    const email = validateEmail(payload.email).find(Boolean);
+    const password = validatePassword(payload.password);
+    const email = validateEmail(payload.email);
     const invalidFields = [password, email].filter(hasErrors);
 
     if (!invalidFields.length) {
+      return {payload: {id: '1'}, metadata: {status: 201}};
     } else {
       return createErrorResponse({
-        title: 'Invalid fields',
         errors: invalidFields,
         status: 400,
+        title: 'Invalid fields',
       });
     }
   },
