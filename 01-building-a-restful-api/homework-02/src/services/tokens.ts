@@ -4,6 +4,7 @@ import {RequestData} from '../types/requests';
 import {Service, ServiceMethod} from '../types/services';
 
 import * as dataLib from '../data';
+import {createHash, createRandomString} from '../helpers';
 import {hasErrors} from '../validations/index';
 import {validateEmail, validatePassword} from '../validations/users';
 
@@ -16,14 +17,35 @@ interface TokenPostPayload {
 
 // one hour expiry
 const EXPIRY_TIME = 1000 * 60 * 60;
+const BASE_DIR = 'tokens';
 
 const tokenMethods: Service = {
-  post: (req, payload: TokenPostPayload = {}) => {
+  post: async (req, payload: TokenPostPayload = {}) => {
     const password = validatePassword(payload.password);
     const email = validateEmail(payload.email);
     const invalidFields = [password, email].filter(hasErrors);
 
     if (!invalidFields.length) {
+      const id = createHash(createRandomString(10));
+      const expires = Date.now() + EXPIRY_TIME;
+      const data = {
+        email,
+        expires,
+        id,
+      };
+
+      try {
+        await dataLib.create(`${BASE_DIR}/${id}.json`, data);
+
+        return {metadata: {status: 201}, payload: JSON.stringify(data)};
+      } catch (err) {
+        return createErrorResponse({
+          errors: [err],
+          instance: req.pathname,
+          status: 500,
+          title: err.code,
+        });
+      }
       return {payload: {id: '1'}, metadata: {status: 201}};
     } else {
       return createErrorResponse({
