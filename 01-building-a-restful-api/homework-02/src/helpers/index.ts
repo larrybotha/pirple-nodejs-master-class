@@ -1,5 +1,7 @@
 import * as crypto from 'crypto';
 
+import {config} from '../config';
+
 const safeJSONParse = (data: any) => {
   try {
     return JSON.parse(data);
@@ -9,7 +11,18 @@ const safeJSONParse = (data: any) => {
 };
 
 type CreateHash = (str: string) => string;
-const createHash = (length = 10) => {};
+const createHash = (str = '') => {
+  if (str) {
+    const hash = crypto
+      .createHmac('sha256', config.hashingSecret)
+      .update(str)
+      .digest('hex');
+
+    return hash;
+  } else {
+    return '';
+  }
+};
 
 type CreateRandomString = (length: number) => string;
 const createRandomString: CreateRandomString = (length = 0) => {
@@ -26,4 +39,4 @@ const createRandomString: CreateRandomString = (length = 0) => {
   return randString;
 };
 
-export {safeJSONParse};
+export {createHash, createRandomString, safeJSONParse};
