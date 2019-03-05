@@ -2,6 +2,18 @@ version: 2
 
 variables:
   endpoint: /tokens
+  schemaValidate:
+      properties:
+        id:
+          type: [string]
+        expires:
+          type: [number]
+        email:
+          type: [string]
+      required:
+        - id
+        - expires
+        - email
 
 requests:
   tokens_create:
@@ -16,8 +28,8 @@ requests:
     validate:
     - jsonpath: status
       expect: 201
-    - jsonpath: content.id
-      type: [string]
+    - jsonpath: content
+      jsonschema: <$ schemaValidate | dump | safe $>
 
   tokens_create_missing_email:
     request:
