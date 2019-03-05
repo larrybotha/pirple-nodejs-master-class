@@ -1,6 +1,6 @@
 import * as http from 'http';
-import * as url from 'url';
 import {StringDecoder} from 'string_decoder';
+import * as url from 'url';
 
 import {safeJSONParse} from './helpers';
 import {services} from './services';
@@ -22,10 +22,10 @@ const router: Router = (req, res) => {
     data += decoder.write(d);
   });
 
-  req.on('end', () => {
+  req.on('end', async () => {
     data += decoder.end();
     const requestPayload = safeJSONParse(data);
-    const {payload, metadata} = service(
+    const {payload, metadata} = await service(
       {headers, method: method.toUpperCase(), pathname: trimmedPath, query},
       requestPayload
     );
