@@ -6,7 +6,7 @@ import {ResponseError, ResponseMetadata, ResponseSuccess} from './responses';
 type ServiceMethod<Entity = any> = (
   req: RequestData,
   payload: RequestPayload
-) => ResponseError | ResponseSuccess<Entity>;
+) => Promise<ResponseError | ResponseSuccess<Entity>>;
 
 interface Service<Entity = any> {
   delete?: ServiceMethod<Entity>;
