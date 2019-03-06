@@ -7,6 +7,7 @@
   "scripts": {
     "prestart": "rm -rf dist && npm run tsc",
     "prestart:homework-02": "npm run prestart && npm run copy:homework-02",
+    "prestart:homework-02:debug": "npm run prestart:homework-02",
     "start": "concurrently npm:watch:server npm:watch:tsc npm:watch:test",
     "start:debug": "concurrently npm:watch:server:debug npm:watch:tsc npm:watch:test",
     "start:homework-01": "concurrently npm:watch:server:homework-01 npm:watch:tsc npm:watch:test",
@@ -15,7 +16,7 @@
     "test": "jest",
     "test:api": "npm test -- -c ./config/tests/jest.newman.js",
     "tsc": "tsc",
-    "copy:homework-02": "cp -r ./homework-02/https ./dist/homework-02",
+    "copy:homework-02": "cp -r ./homework-02/https ./dist/homework-02 && cp -rf ./homework-02/.data ./dist/homework-02",
     "watch:tsc": "npm run tsc -- -w",
     "watch:test": "npm run test -- --watch",
     "watch:test:api": "npm run test:api -- --watch --runInBand",
