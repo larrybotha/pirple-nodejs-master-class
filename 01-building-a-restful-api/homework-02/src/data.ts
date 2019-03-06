@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import {debuglog, promisify} from 'util';
 
 const debug = debuglog('data');
@@ -11,8 +12,18 @@ const asyncClose = promisify(fs.close);
 const asyncFtruncate = promisify(fs.ftruncate);
 const asyncUnlink = promisify(fs.unlink);
 
-type Create = (filePath: string, data: any) => Promise<string>;
-const create: Create = async (filePath, data) => {
+const basePath = path.resolve(__dirname, '../.data');
+
+const getFilePath = (dir: string, fileName: string, ext: string = 'json') => {
+  const filePath = path.join(basePath, dir, fileName);
+
+  return [filePath, ext].join('.');
+};
+
+type Create = (dir: string, fileName: string, data: any) => Promise<string>;
+const create: Create = async (dir, fileName, data) => {
+  const filePath = getFilePath(dir, fileName);
+
   try {
     const fileDescriptor = await asyncOpen(filePath, 'wx');
     await asyncWriteFile(fileDescriptor, JSON.stringify(data), 'utf8');
@@ -25,8 +36,10 @@ const create: Create = async (filePath, data) => {
   }
 };
 
-type Read = (filePath: string) => Promise<any>;
-const read: Read = async filePath => {
+type Read = (dir: string, fileName: string) => Promise<any>;
+const read: Read = async (dir, fileName) => {
+  const filePath = getFilePath(dir, fileName);
+
   try {
     const fileDescriptor = await asyncOpen(filePath, 'r');
     const resultBuffer = await asyncReadFile(fileDescriptor);
@@ -39,8 +52,10 @@ const read: Read = async filePath => {
   }
 };
 
-type Patch = (filePath: string, data: object) => Promise<any>;
-const patch: Patch = async (filePath, data) => {
+type Patch = (dir: string, fileName: string, data: object) => Promise<any>;
+const patch: Patch = async (dir, fileName, data) => {
+  const filePath = getFilePath(dir, fileName);
+
   try {
     const fd = await asyncOpen(filePath, 'r+');
     const fileData = await asyncReadFile(fd);
@@ -57,8 +72,10 @@ const patch: Patch = async (filePath, data) => {
   }
 };
 
-type Remove = (filePath: string) => Promise<boolean>;
-const remove: Remove = async filePath => {
+type Remove = (dir: string, fileName: string) => Promise<boolean>;
+const remove: Remove = async (dir, fileName) => {
+  const filePath = getFilePath(dir, fileName);
+
   try {
     await asyncAccess(filePath, fs.constants.F_OK);
     await asyncUnlink(filePath);

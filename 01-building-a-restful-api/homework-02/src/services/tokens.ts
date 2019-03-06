@@ -35,7 +35,7 @@ const tokenMethods: Service = {
       };
 
       try {
-        await dataLib.create(`${BASE_DIR}/${id}.json`, data);
+	await dataLib.create(BASE_DIR, id, data);
 
         return {metadata: {status: 201}, payload: JSON.stringify(data)};
       } catch (err) {
