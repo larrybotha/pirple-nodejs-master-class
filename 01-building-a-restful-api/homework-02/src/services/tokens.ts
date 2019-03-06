@@ -26,7 +26,7 @@ const tokenMethods: Service = {
     const invalidFields = [password, email].filter(hasErrors);
 
     if (!invalidFields.length) {
-      const id = createHash(createRandomString(10));
+      const id = createRandomString(10);
       const expires = Date.now() + EXPIRY_TIME;
       const data = {
         email,
@@ -35,7 +35,7 @@ const tokenMethods: Service = {
       };
 
       try {
-	await dataLib.create(BASE_DIR, id, data);
+        await dataLib.create(BASE_DIR, id, data);
 
         return {metadata: {status: 201}, payload: JSON.stringify(data)};
       } catch (err) {
