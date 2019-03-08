@@ -2,14 +2,16 @@ version: 2
 
 variables:
   endpoint: /tokens
+  password: 'password'
+  email: 'test@example.com'
   schemaValidate:
       properties:
         id:
-          type: [string]
+          type: string
         expires:
-          type: [number]
+          type: number
         email:
-          type: [string]
+          type: string
       required:
         - id
         - expires
@@ -23,13 +25,15 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          password: 'password'
-          email: 'test@example.com'
+          password: <$ password $>
+          email: <$ email $>
     validate:
     - jsonpath: status
       expect: 201
     - jsonpath: content
       jsonschema: <$ schemaValidate | dump | safe $>
+    - jsonpath: content.email
+      expect: <$ email $>
 
   tokens_create_missing_email:
     request:
