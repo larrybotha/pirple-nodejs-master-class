@@ -30,8 +30,9 @@ const router: Router = (req, res) => {
       requestPayload
     );
 
-    res.setHeader('Content-type', 'application/json');
+    res.setHeader('Content-Type', 'application/json');
     res.writeHead(metadata.status);
+
     res.end(payload ? JSON.stringify(payload) : null);
   });
 };
