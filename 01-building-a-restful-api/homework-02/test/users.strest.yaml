@@ -1,7 +1,7 @@
 version: 2
 
 variables:
-  endpoint: /users
+  endpoint: users
   schemaValidate:
       properties:
         address:
@@ -17,9 +17,25 @@ variables:
         - password
 
 requests:
-  tokens_create:
+  users_get_nonexistent:
     request:
-      url: <$ globalBaseUrl $><$ endpoint $>
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 404
+
+  users_delete_nonexisting:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 204
+
+  users_create:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
       method: POST
       postData:
         mimeType: 'application/json'
@@ -32,26 +48,44 @@ requests:
     - jsonpath: content
       jsonschema: <$ schemaValidate | dump | safe $>
 
-  tokens_create_missing_email:
+  users_get:
     request:
-      url: <$ globalBaseUrl $><$ endpoint $>
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+
+  users_delete:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 200
+
+  users_create_missing_email:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
       method: POST
       postData:
         mimeType: 'application/json'
         text:
-          password: 'password'
+          password: <$ password $>
     validate:
     - jsonpath: status
       expect: 400
 
-  tokens_create_missing_password:
+  users_create_missing_password:
     request:
-      url: <$ globalBaseUrl $><$ endpoint $>
+      url: <$ globalBaseUrl $>/<$ endpoint $>
       method: POST
       postData:
         mimeType: 'application/json'
         text:
-          email: 'test@example.com'
+          email: <$ email $>
     validate:
     - jsonpath: status
       expect: 400
