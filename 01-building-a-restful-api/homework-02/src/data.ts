@@ -20,7 +20,7 @@ const getFilePath = (dir: string, fileName: string, ext: string = 'json') => {
   return [filePath, ext].join('.');
 };
 
-type Create = (dir: string, fileName: string, data: any) => Promise<string>;
+type Create = (dir: string, fileName: string, data: any) => Promise<any>;
 const create: Create = async (dir, fileName, data) => {
   const filePath = getFilePath(dir, fileName);
 
