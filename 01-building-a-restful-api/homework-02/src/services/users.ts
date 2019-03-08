@@ -1,3 +1,5 @@
+import {debuglog} from 'util';
+
 import {User} from '../types/entities/users';
 import {Service} from '../types/services';
 
@@ -5,8 +7,10 @@ import * as dataLib from '../data';
 import {createHash, createRandomString, safeJSONParse} from '../helpers';
 import {hasErrors} from '../validations';
 import {validateEmail, validatePassword} from '../validations/users';
+
 import {createErrorResponse, createService} from './utils';
 
+const debug = debuglog('users');
 const BASE_DIR = 'users';
 
 const userMethods: Service<User> = {
@@ -91,7 +95,9 @@ const userMethods: Service<User> = {
         status: 409,
         title: 'User exists',
       });
-    } catch (err) {}
+    } catch (err) {
+      debug('Creating user');
+    }
 
     const hashedPassword = createHash(password.value);
 
