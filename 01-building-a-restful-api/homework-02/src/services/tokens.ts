@@ -29,7 +29,7 @@ const tokenMethods: Service = {
       const id = createRandomString(10);
       const expires = Date.now() + EXPIRY_TIME;
       const data = {
-        email,
+        email: email.value,
         expires,
         id,
       };
@@ -37,7 +37,7 @@ const tokenMethods: Service = {
       try {
         await dataLib.create(BASE_DIR, id, data);
 
-        return {metadata: {status: 201}, payload: JSON.stringify(data)};
+        return {metadata: {status: 201}, payload: data};
       } catch (err) {
         return createErrorResponse({
           errors: [err],
