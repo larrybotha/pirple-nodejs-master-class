@@ -2,6 +2,8 @@ version: 2
 
 variables:
   endpoint: users
+  password: 'password'
+  email: 'test@example.com'
   schemaValidate:
       properties:
         address:
@@ -10,11 +12,8 @@ variables:
           type: [string]
         name:
           type: [string]
-        password:
-          type: [string]
       required:
         - email
-        - password
 
 requests:
   users_get_nonexistent:
@@ -40,13 +39,13 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          email: 'test@example.com'
-          password: 'password'
+          email: <$ email $>
+          password: <$ password $>
     validate:
-    - jsonpath: status
-      expect: 201
-    - jsonpath: content
-      jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
 
   users_get:
     request:
