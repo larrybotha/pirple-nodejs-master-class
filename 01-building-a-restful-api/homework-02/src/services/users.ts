@@ -13,7 +13,16 @@ import {createErrorResponse, createService} from './utils';
 const debug = debuglog('users');
 const BASE_DIR = 'users';
 
-const userMethods: Service<User> = {
+type UserResponsePayload = Pick<User, Exclude<keyof User, 'password'>>;
+
+type GetAllowedResponsePayload = (user: User) => UserResponsePayload;
+const getAllowedResponsePayload: GetAllowedResponsePayload = user => {
+  const {password, ...rest} = user;
+
+  return rest;
+};
+
+const userMethods: Service<UserResponsePayload> = {
   /*
    * Delete a user
    *
@@ -46,16 +55,19 @@ const userMethods: Service<User> = {
    *
    * /users/:email
    */
-  get: async ({pathname}, payload) => {
+  get: async ({pathname}) => {
     const email = pathname
       .split('/')
       .slice(-1)
       .find(Boolean);
 
     try {
-      const data: User = await dataLib.read(BASE_DIR, email);
+      const result: User = await dataLib.read(BASE_DIR, email);
 
-      return {metadata: {status: 200}, payload: data};
+      return {
+        metadata: {status: 200},
+        payload: getAllowedResponsePayload(result),
+      };
     } catch (err) {
       return createErrorResponse({
         errors: [err],
@@ -120,7 +132,10 @@ const userMethods: Service<User> = {
     try {
       const result = await dataLib.create(BASE_DIR, email.value, user);
 
-      return {metadata: {status: 201}, payload: result};
+      return {
+        metadata: {status: 201},
+        payload: getAllowedResponsePayload(result),
+      };
     } catch (err) {
       return createErrorResponse({
         errors: [err],
