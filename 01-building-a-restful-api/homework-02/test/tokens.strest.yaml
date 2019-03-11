@@ -40,6 +40,7 @@ requests:
           password: <$ password $>
   # end setup
 
+  # success responses
   tokens_create:
     request:
       url: <$ globalBaseUrl $><$ endpoint $>
@@ -57,6 +58,39 @@ requests:
     - jsonpath: content.email
       expect: <$ tokens_user_create.content.email $>
 
+  tokens_get:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>/<$ tokens_create.content.id $>
+      method: GET
+      headers:
+        - name: Authorization
+          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
+    validate:
+    - jsonpath: status
+      expect: 200
+    - jsonpath: content
+      jsonschema: <$ schemaValidate | dump | safe $>
+    - jsonpath: content.email
+      expect: <$ tokens_user_create.content.email $>
+
+  tokens_patch:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>/<$ tokens_create.content.id $>
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
+      postData:
+        mimeType: 'application/json'
+        text:
+          extend: true
+    validate:
+    - jsonpath: status
+      expect: 200
+    - jsonpath: content
+      jsonschema: <$ schemaValidate | dump | safe $>
+
+  # missing auth headers
   tokens_create_missing_email:
     request:
       url: <$ globalBaseUrl $><$ endpoint $>
@@ -81,36 +115,9 @@ requests:
     - jsonpath: status
       expect: 400
 
-  tokens_get:
-    request:
-      url: <$ globalBaseUrl $><$ endpoint $>
-      method: GET
-      headers:
-        - name: Authorization
-          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
-    validate:
-    - jsonpath: status
-      expect: 200
-    - jsonpath: content
-      jsonschema: <$ schemaValidate | dump | safe $>
-    - jsonpath: content.email
-      expect: <$ tokens_user_create.content.email $>
-
-  tokens_patch:
-    request:
-      url: <$ globalBaseUrl $><$ endpoint $>
-      method: PATCH
-      headers:
-        - name: Authorization
-          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
-    validate:
-    - jsonpath: status
-      expect: 200
-
-  # missing auth headers
   tokens_get_missing_auth_header:
     request:
-      url: <$ globalBaseUrl $><$ endpoint $>
+      url: <$ globalBaseUrl $><$ endpoint $>/<$ tokens_create.content.id $>
       method: GET
     validate:
     - jsonpath: status
