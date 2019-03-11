@@ -15,14 +15,17 @@ type EvaluateAuthentication = (
   headers: http.IncomingHttpHeaders,
   tokenIdPathParam: string
 ) => Promise<AuthenticationResult>;
-const evaluateAuthentication: EvaluateAuthentication = async (headers, tokenIdPathParam) => {
+const evaluateAuthentication: EvaluateAuthentication = async (
+  headers,
+  tokenIdPathParam
+) => {
   const errorResponse = {status: 401, title: 'Not authenticated'};
 
-  const [email, tokenId] = (headers.authorization || '')
+  const hmac = (headers.authorization || '')
     .split(' ')
-    .slice(1)
-    .find(Boolean)
-    .split(':');
+    .slice(-1)
+    .find(Boolean);
+  const [email, tokenId] = /:/.test(hmac) ? hmac.split(':') : ':';
 
   if (tokenId !== tokenIdPathParam) {
     return errorResponse;
