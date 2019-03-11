@@ -87,8 +87,10 @@ const remove: Remove = async (dir, fileName) => {
   }
 };
 
-type Update = (filePath: string, data: object) => Promise<any>;
-const update: Update = async (filePath, data) => {
+type Update = (dir: string, fileName: string, data: object) => Promise<any>;
+const update: Update = async (dir, fileName, data) => {
+  const filePath = getFilePath(dir, fileName);
+
   try {
     const fd = await asyncOpen(filePath, 'r+');
 

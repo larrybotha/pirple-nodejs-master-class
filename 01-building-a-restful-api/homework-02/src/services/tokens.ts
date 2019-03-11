@@ -5,7 +5,7 @@ import {Service, ServiceMethod} from '../types/services';
 
 import * as dataLib from '../data';
 import {createHash, createRandomString} from '../helpers';
-import {hasErrors} from '../validations/index';
+import {createValidator, hasErrors, isOfType} from '../validations/index';
 import {validateEmail, validatePassword} from '../validations/users';
 
 import {createErrorResponse, createService} from './utils';
@@ -24,7 +24,45 @@ interface TokenPatchPayload {
 const EXPIRY_TIME = 1000 * 60 * 60;
 const BASE_DIR = 'tokens';
 
+const getExpiresTime = () => {
+  return Date.now() + EXPIRY_TIME;
+};
+
 const tokenMethods: Service = {
+  /*
+   * Delete a token for an authenticated user
+   *
+   * Required headers:
+   * Authorization: hmac email:[token id]
+   */
+  delete: async ({headers, pathname}) => {
+    const tokenId = pathname
+      .split('/')
+      .slice(-1)
+      .find(Boolean);
+    const {status, title, token} = await evaluateAuthentication(
+      headers,
+      tokenId
+    );
+
+    if (!/2\d{2}/.test(`${status}`)) {
+      return createErrorResponse({
+        instance: pathname,
+        status,
+        title,
+      });
+    }
+
+    try {
+      await dataLib.read(BASE_DIR, tokenId);
+      await dataLib.remove(BASE_DIR, tokenId);
+
+      return {metadata: {status: 200}};
+    } catch (err) {
+      return {metadata: {status: 204}};
+    }
+  },
+
   /*
    * Get a token for an authenticated user
    *
@@ -32,7 +70,10 @@ const tokenMethods: Service = {
    * Authorization: hmac email:[token id]
    */
   get: async ({headers, pathname}) => {
-    const [_, tokenId] = pathname.split('/');
+    const tokenId = pathname
+      .split('/')
+      .slice(-1)
+      .find(Boolean);
     const {status, title, token} = await evaluateAuthentication(
       headers,
       tokenId
@@ -55,10 +96,16 @@ const tokenMethods: Service = {
    * Required headers:
    * Authorization: hmac email:[token id]
    *
-   * Payload
+   * @param payload {object} - data sent as the body of the request
+   * @param payload.extend {boolean} - whether to extend the token or not
+   *
+   * @return ErrorResponse | SuccessResponse
    */
-  patch: async ({headers, pathname}) => {
-    const [_, tokenId] = pathname.split('/');
+  patch: async ({headers, pathname}, payload) => {
+    const tokenId = pathname
+      .split('/')
+      .slice(-1)
+      .find(Boolean);
     const {status, title, token} = await evaluateAuthentication(
       headers,
       tokenId
@@ -72,8 +119,29 @@ const tokenMethods: Service = {
       });
     }
 
+    const extend = createValidator(payload.extend, 'extend')
+      .map(isOfType({type: 'boolean'}, 'extend must boolean'))
+      .find(Boolean);
+    const invalidFields = [extend].filter(hasErrors);
+
+    if (invalidFields.length) {
+      return createErrorResponse({
+        errors: invalidFields,
+        instance: pathname,
+        status: 400,
+        title: 'Invalid fields',
+      });
+    }
+
     try {
-      return {metadata: {status}, payload: token};
+      const expires = getExpiresTime();
+      const newTokenData = extend.value ? {...token, expires} : {...token};
+
+      if (extend.value) {
+        await dataLib.update(BASE_DIR, tokenId, newTokenData);
+      }
+
+      return {metadata: {status}, payload: newTokenData};
     } catch (err) {
       return createErrorResponse({
         errors: [err],
@@ -125,7 +193,7 @@ const tokenMethods: Service = {
 
     // create token
     const id = createRandomString(10);
-    const expires = Date.now() + EXPIRY_TIME;
+    const expires = getExpiresTime();
     const data = {
       email: email.value,
       expires,
