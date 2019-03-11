@@ -155,7 +155,7 @@ const tokenMethods: {[key: string]: Handler} = {
    * optional: none
    *
    * We don't want users to define the time that they can extend the expiration of a
-   * token, but we do want to extend it, so 'extend' is the only data that PUt expects
+   * token, but we do want to extend it, so 'extend' is the only data that PUT expects
    *
    * only authenticated users may create a token
    */
