@@ -5,7 +5,12 @@ import {Service, ServiceMethod} from '../types/services';
 
 import * as dataLib from '../data';
 import {createHash, createRandomString} from '../helpers';
-import {createValidator, hasErrors, isOfType} from '../validations/index';
+import {
+  createValidator,
+  exists,
+  hasErrors,
+  isOfType,
+} from '../validations/index';
 import {validateEmail, validatePassword} from '../validations/users';
 
 import {createErrorResponse, createService} from './utils';
@@ -40,10 +45,7 @@ const tokenMethods: Service = {
       .split('/')
       .slice(-1)
       .find(Boolean);
-    const {status, title, token} = await evaluateAuthentication(
-      headers,
-      tokenId
-    );
+    const {status, title, token} = await evaluateAuthentication(headers);
 
     if (!/2\d{2}/.test(`${status}`)) {
       return createErrorResponse({
@@ -70,20 +72,39 @@ const tokenMethods: Service = {
    * Authorization: hmac email:[token id]
    */
   get: async ({headers, pathname}) => {
-    const tokenId = pathname
+    const pathToken = pathname
       .split('/')
       .slice(-1)
       .find(Boolean);
-    const {status, title, token} = await evaluateAuthentication(
-      headers,
-      tokenId
-    );
+    const validatedToken = createValidator(pathToken, 'token')
+      .map(exists('token path parameter is required'))
+      .find(Boolean);
+    const invalidParams = [validatedToken].filter(hasErrors);
+
+    if (invalidParams.length) {
+      return createErrorResponse({
+        errors: invalidParams,
+        instance: pathname,
+        status: 400,
+        title: 'Invalid path parameters',
+      });
+    }
+
+    const {status, title, token} = await evaluateAuthentication(headers);
 
     if (!/2\d{2}/.test(`${status}`)) {
       return createErrorResponse({
         instance: pathname,
         status,
         title,
+      });
+    }
+
+    if (token.id !== validatedToken.value) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 403,
+        title: `You are not authorised to access this token`,
       });
     }
 
@@ -106,16 +127,21 @@ const tokenMethods: Service = {
       .split('/')
       .slice(-1)
       .find(Boolean);
-    const {status, title, token} = await evaluateAuthentication(
-      headers,
-      tokenId
-    );
+    const {status, title, token} = await evaluateAuthentication(headers);
 
     if (!/2\d{2}/.test(`${status}`)) {
       return createErrorResponse({
         instance: pathname,
         status,
         title,
+      });
+    }
+
+    if (tokenId !== token.id) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 403,
+        title: `You may not update the expiry of a token other than your current token`,
       });
     }
 

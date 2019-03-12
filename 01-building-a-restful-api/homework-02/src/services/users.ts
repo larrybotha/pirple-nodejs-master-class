@@ -5,10 +5,11 @@ import {Service} from '../types/services';
 
 import * as dataLib from '../data';
 import {createHash, createRandomString, safeJSONParse} from '../helpers';
-import {hasErrors} from '../validations';
+import {createValidator, exists, hasErrors} from '../validations';
 import {validateEmail, validatePassword} from '../validations/users';
 
 import {createErrorResponse, createService} from './utils';
+import {evaluateAuthentication} from './utils/authentication';
 
 const debug = debuglog('users');
 const BASE_DIR = 'users';
@@ -28,26 +29,49 @@ const userMethods: Service<UserResponsePayload> = {
    *
    * /users/:email
    */
-  delete: async ({pathname}, payload) => {
-    const email = pathname
+  delete: async ({headers, pathname}, payload) => {
+    const {status: authStatus, title} = await evaluateAuthentication(headers);
+
+    if (!/^2\d{2}/.test(`${authStatus}`)) {
+      return createErrorResponse({
+        status: authStatus,
+        title,
+      });
+    }
+
+    const emailParam = pathname
       .split('/')
       .slice(-1)
       .find(Boolean);
+    const validatedEmail = createValidator(emailParam, 'email')
+      .map(exists('email path parameter is required'))
+      .find(Boolean);
+    const invalidParams = [validatedEmail].filter(hasErrors);
+
+    if (invalidParams.length) {
+      return createErrorResponse({
+        errors: invalidParams,
+        instance: pathname,
+        status: 400,
+        title: 'Invalid path params',
+      });
+    }
+
     let status = 200;
 
     try {
-      await dataLib.read(BASE_DIR, email);
+      await dataLib.read(BASE_DIR, validatedEmail.value);
     } catch (err) {
       status = 204;
     }
 
     try {
-      await dataLib.remove(BASE_DIR, email);
-
-      return {metadata: {status}};
+      await dataLib.remove(BASE_DIR, validatedEmail.value);
     } catch (err) {
       return createErrorResponse({status: 500, errors: [err], title: err.code});
     }
+
+    return {metadata: {status}};
   },
 
   /*
@@ -84,6 +108,8 @@ const userMethods: Service<UserResponsePayload> = {
    * Required fields:
    *  password
    *  email
+   *
+   * /users
    */
   post: async (req, payload) => {
     const password = validatePassword(payload.password);

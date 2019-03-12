@@ -12,27 +12,18 @@ interface AuthenticationResult {
 }
 
 type EvaluateAuthentication = (
-  headers: http.IncomingHttpHeaders,
-  tokenIdPathParam: string
+  headers: http.IncomingHttpHeaders
 ) => Promise<AuthenticationResult>;
-const evaluateAuthentication: EvaluateAuthentication = async (
-  headers,
-  tokenIdPathParam
-) => {
+const evaluateAuthentication: EvaluateAuthentication = async headers => {
   const errorResponse = {status: 401, title: 'Not authenticated'};
-
   const hmac = (headers.authorization || '')
     .split(' ')
     .slice(-1)
     .find(Boolean);
   const [email, tokenId] = /:/.test(hmac) ? hmac.split(':') : ':';
 
-  if (tokenId !== tokenIdPathParam) {
-    return errorResponse;
-  }
-
   try {
-    const token: Token = await dataLib.read('tokens', tokenIdPathParam);
+    const token: Token = await dataLib.read('tokens', tokenId);
 
     if (Date.now() > token.expires) {
       return errorResponse;
