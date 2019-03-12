@@ -1,0 +1,66 @@
+version: 2
+
+variables:
+  endpoint: /menu-items
+  password: 'password'
+  schemaValidate:
+    properties:
+      id:
+        type: string
+      expires:
+        type: number
+      email:
+        type: string
+    required:
+      - id
+      - expires
+      - email
+
+requests:
+  # setup
+  menu_items_setup:
+    request:
+      url: https://postman-echo.com/post
+      method: POST
+      postData:
+        mimeType: application/json
+        text:
+          email:
+            value: <$ Faker("internet.email") $>
+    # log: true
+
+  menu_items_user_create:
+    request:
+      url: <$ globalBaseUrl $>/users
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ Faker("internet.email") $>
+          password: <$ password $>
+
+  menu_items_token_create:
+    request:
+      url: <$ globalBaseUrl $>/tokens
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ menu_items_user_create.content.email $>
+          password: <$ password $>
+  # end setup
+
+  # success responses
+  menu_items_get:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: GET
+      headers:
+
+    validate:
+    - jsonpath: status
+      expect: 201
+    - jsonpath: content
+      jsonschema: <$ schemaValidate | dump | safe $>
+    - jsonpath: content.email
+      expect: <$ tokens_user_create.content.email $>
