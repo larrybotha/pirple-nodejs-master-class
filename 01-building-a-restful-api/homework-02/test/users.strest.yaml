@@ -28,6 +28,9 @@ requests:
     request:
       url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
       method: DELETE
+      headers:
+        - name: Authorization
+          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
     validate:
       - jsonpath: status
         expect: 204
@@ -57,10 +60,21 @@ requests:
       - jsonpath: content
         jsonschema: <$ schemaValidate | dump | safe $>
 
+  users_delete_without_auth:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 401
+
   users_delete:
     request:
       url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
       method: DELETE
+      headers:
+        - name: Authorization
+          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
     validate:
       - jsonpath: status
         expect: 200
