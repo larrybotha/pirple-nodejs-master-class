@@ -3,7 +3,6 @@ version: 2
 variables:
   endpoint: users
   password: 'password'
-  email: 'test@example.com'
   schemaValidate:
       properties:
         address:
@@ -12,8 +11,11 @@ variables:
           type: [string]
         name:
           type: [string]
+        id:
+          types: [string]
       required:
         - email
+      additionalProperties: false
 
 requests:
   users_get_nonexistent:
@@ -30,10 +32,10 @@ requests:
       method: DELETE
       headers:
         - name: Authorization
-          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
+          value: hmac foo@test.com:<$ tokens_create.content.id $>
     validate:
       - jsonpath: status
-        expect: 204
+        expect: 401
 
   users_create:
     request:
@@ -42,13 +44,23 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          email: <$ email $>
+          email: <$ Faker("internet.email") $>
           password: <$ password $>
     validate:
       - jsonpath: status
         expect: 201
       - jsonpath: content
         jsonschema: <$ schemaValidate | dump | safe $>
+
+  users_token_create:
+    request:
+      url: <$ globalBaseUrl $>/tokens
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ users_create.content.email $>
+          password: <$ password $>
 
   users_get:
     request:
@@ -74,7 +86,7 @@ requests:
       method: DELETE
       headers:
         - name: Authorization
-          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
+          value: hmac <$ users_create.content.email $>:<$ users_token_create.content.id $>
     validate:
       - jsonpath: status
         expect: 200
@@ -98,7 +110,7 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          email: <$ email $>
+          email: <$ users_create.content.email $>
     validate:
     - jsonpath: status
       expect: 400
