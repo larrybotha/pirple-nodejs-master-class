@@ -38,7 +38,7 @@ requests:
           value: hmac foo@test.com:<$ tokens_create.content.id $>
     validate:
       - jsonpath: status
-        expect: 401
+        expect: 204
 
   users_create:
     request:
