@@ -15,6 +15,9 @@ variables:
           types: [string]
       required:
         - email
+        - id
+        - name
+        - address
       additionalProperties: false
 
 requests:
@@ -39,18 +42,19 @@ requests:
 
   users_create:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
       method: POST
       postData:
         mimeType: 'application/json'
         text:
-          email: <$ Faker("internet.email") $>
-          password: <$ password $>
+          email: '<$ Faker("internet.email") $>'
+          password: '<$ password $>'
     validate:
       - jsonpath: status
         expect: 201
       - jsonpath: content
         jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
 
   users_token_create:
     request:
