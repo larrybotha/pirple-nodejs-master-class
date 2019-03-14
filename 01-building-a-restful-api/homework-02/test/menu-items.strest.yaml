@@ -4,20 +4,19 @@ variables:
   endpoint: /menu-items
   password: 'password'
   schemaValidate:
-    properties:
-      id:
-        type: string
-      expires:
-        type: number
-      email:
-        type: string
-    required:
-      - id
-      - expires
-      - email
+    type: [array]
+    items:
+      type: [object]
+      properties:
+        id:
+          type: [number]
+        name:
+          type: [string]
+        price:
+          type: [number]
 
 requests:
-  # setup
+  # begin setup
   menu_items_setup:
     request:
       url: https://postman-echo.com/post
@@ -50,17 +49,43 @@ requests:
           password: <$ password $>
   # end setup
 
+  # unauthenticated requests
+  menu_items_get_without_authentication:
+    request:
+      url: '<$ globalBaseUrl $><$ endpoint $>'
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 401
+
   # success responses
   menu_items_get:
     request:
-      url: <$ globalBaseUrl $><$ endpoint $>
+      url: '<$ globalBaseUrl $><$ endpoint $>'
       method: GET
       headers:
-
+        - name: Authorization
+          value: 'hmac <$ menu_items_user_create.content.email $>:<$ menu_items_token_create.content.id $>'
     validate:
-    - jsonpath: status
-      expect: 201
-    - jsonpath: content
-      jsonschema: <$ schemaValidate | dump | safe $>
-    - jsonpath: content.email
-      expect: <$ tokens_user_create.content.email $>
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
+
+  # clean up
+  menu_items_user_delete:
+    request:
+      url: '<$ globalBaseUrl $>/users/<$ menu_items_user_create.content.email $>'
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac <$ menu_items_user_create.content.email $>:<$ menu_items_token_create.content.id $>'
+
+  menu_items_token_delete:
+    request:
+      url: '<$ globalBaseUrl $>/tokens/<$ menu_items_token_create.content.id $>'
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac <$ menu_items_user_create.content.email $>:<$ menu_items_token_create.content.id $>'
