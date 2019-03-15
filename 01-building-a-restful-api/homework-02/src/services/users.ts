@@ -1,11 +1,12 @@
 import {debuglog} from 'util';
 
 import {User} from '../types/entities/users';
+import {ResponseError} from '../types/responses';
 import {Service} from '../types/services';
 
 import * as dataLib from '../data';
 import {createHash, createRandomString, safeJSONParse} from '../helpers';
-import {createValidator, exists, hasErrors} from '../validations';
+import {createValidator, exists, hasErrors, Validation} from '../validations';
 import {validateEmail, validatePassword} from '../validations/users';
 
 import {createErrorResponse, createService} from './utils';
@@ -21,6 +22,22 @@ const getAllowedResponsePayload: GetAllowedResponsePayload = user => {
   const {password, ...rest} = user;
 
   return rest;
+};
+
+type GetInvalidParamsResonse = (
+  invalidParams: Validation[],
+  pathname: string
+) => ResponseError;
+const getInvalidParamsResponse: GetInvalidParamsResonse = (
+  invalidParams,
+  pathname
+) => {
+  return createErrorResponse({
+    errors: invalidParams,
+    instance: pathname,
+    status: 400,
+    title: 'Invalid path params',
+  });
 };
 
 const userMethods: Service<UserResponsePayload> = {
@@ -49,12 +66,7 @@ const userMethods: Service<UserResponsePayload> = {
     const invalidParams = [validatedEmail].filter(hasErrors);
 
     if (invalidParams.length) {
-      return createErrorResponse({
-        errors: invalidParams,
-        instance: pathname,
-        status: 400,
-        title: 'Invalid path params',
-      });
+      return getInvalidParamsResponse(invalidParams, pathname);
     }
 
     let status = 200;
@@ -87,6 +99,81 @@ const userMethods: Service<UserResponsePayload> = {
 
     try {
       const result: User = await dataLib.read(BASE_DIR, email);
+
+      return {
+        metadata: {status: 200},
+        payload: getAllowedResponsePayload(result),
+      };
+    } catch (err) {
+      return createErrorResponse({
+        errors: [err],
+        instance: pathname,
+        status: 404,
+        title: 'User not found',
+      });
+    }
+  },
+
+  /**
+   * Patch a user
+   *
+   * /users/:email
+   *
+   * @param {string} request endpoint - /users/:email
+   * @param {object} payload - payload sent in the request
+   * TODO: change json filename if email is patched
+   * @param {object?} payload.email - user's email
+   * @param {object?} payload.name - user's name
+   * @param {object?} payload.password - user's password
+   * @param {object?} payload.address - user's address
+   * @returns {undefined}
+   */
+  patch: async ({pathname}, payload: Partial<User>) => {
+    const emailParam = pathname
+      .split('/')
+      .slice(-1)
+      .find(Boolean);
+    const validatedEmail = createValidator(emailParam, 'email')
+      .map(exists('email path parameter is required'))
+      .find(Boolean);
+    const invalidParams = [validatedEmail].filter(hasErrors);
+
+    if (invalidParams.length) {
+      return getInvalidParamsResponse(invalidParams, pathname);
+    }
+
+    const email = createValidator(payload.email, 'email').find(Boolean);
+    const name = createValidator(payload.name, 'name').find(Boolean);
+    const address = createValidator(payload.address, 'address').find(Boolean);
+    const password = payload.password
+      ? validatePassword(payload.password)
+      : createValidator('password', undefined).find(Boolean);
+    const invalidFields = [email, name, address, password].filter(hasErrors);
+
+    if (invalidFields.length) {
+      return createErrorResponse({
+        errors: invalidFields,
+        instance: pathname,
+        status: 400,
+        title: 'Bad request',
+      });
+    }
+
+    const fieldsToUpdate = [email, name, address, password].filter(
+      v => !hasErrors(v)
+    );
+
+    try {
+      const newUserData = fieldsToUpdate.reduce(
+        (acc, v) => ({...acc, [v.name]: v.value}),
+        {}
+      );
+      await dataLib.read(BASE_DIR, validatedEmail.value);
+      const result = await dataLib.patch(
+        BASE_DIR,
+        validatedEmail.value,
+        newUserData
+      );
 
       return {
         metadata: {status: 200},

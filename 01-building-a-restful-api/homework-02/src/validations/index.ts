@@ -1,6 +1,7 @@
 type ValidationError = string;
 
 interface Validation {
+  name: string;
   errors: ValidationError[];
   value?: any;
 }

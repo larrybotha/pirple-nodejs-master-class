@@ -3,6 +3,8 @@ version: 2
 variables:
   endpoint: users
   password: 'password'
+  name: 'foo'
+  address: 'bar'
   schemaValidate:
       properties:
         address:
@@ -75,6 +77,26 @@ requests:
         expect: 200
       - jsonpath: content
         jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
+
+  users_patch:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      method: PATCH
+      postData:
+        mimeType: 'application/json'
+        text:
+          name: <$ name $>
+          address: <$ address $>
+    validate:
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: content.name
+        expect: '<$ name $>'
+      - jsonpath: content.address
+        expect: '<$ address $>'
 
   users_delete_without_auth:
     request:
