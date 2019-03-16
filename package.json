@@ -24,7 +24,8 @@
     "newman": "4.3.1",
     "nodemon": "1.18.9",
     "tslint-config-prettier": "1.17.0",
-    "typescript": "3.2.2"
+    "typescript": "3.2.2",
+    "yaml-lint": "1.2.4"
   },
   "husky": {
     "hooks": {
