@@ -1,0 +1,78 @@
+version: 2
+
+variables:
+  endpoint: orders
+  schemaValidate:
+    properties:
+      id:
+        type: [string]
+      userId:
+        type: [string]
+      status:
+        type: [string]
+      lineItems:
+        type: [array]
+        items:
+          type: [object]
+          properties:
+            id:
+              type: [number]
+            quantity:
+              type: [number]
+      required:
+        - id
+        - lineItems
+        - userId
+        - status
+
+requests:
+  orders_create:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
+      method: POST
+      postData:
+        mimeType: application/json
+        text:
+          lineItems:
+            - id: 1
+              quantity: 1
+            - id: 2
+              quantity: 3
+    validate:
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump |  safe $>
+      - jsonpath: content.status
+        expect: 'unpaid'
+    # log: true
+
+  orders_get:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump |  safe $>
+    # log: true
+
+  orders_delete:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 204
+
+  orders_patch:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>
+      method: PATCH
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump |  safe $>
+    # log: true
