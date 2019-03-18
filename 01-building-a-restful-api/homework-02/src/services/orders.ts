@@ -2,11 +2,13 @@ import {MenuItem} from '../types/entities/menu-items';
 import {Order, OrderLineItem, OrderStatus} from '../types/entities/orders';
 import {Service} from '../types/services';
 
+import * as dataLib from '../data';
 import {createRandomString} from '../helpers';
 
-import {hasErrors} from '../validations';
+import {createValidator, exists, hasErrors} from '../validations';
 import {validateLineItems} from '../validations/line-items';
 import {createErrorResponse, createService} from './utils';
+import {evaluateAuthentication} from './utils/authentication';
 
 interface OrderPostPayload {
   lineItems: {id: MenuItem['id']; quantity: OrderLineItem['quantity']};
@@ -15,6 +17,175 @@ interface OrderPostPayload {
 const BASE_DIR = 'orders';
 
 const orderMethods: Service<Order> = {
+  /**
+   * delete an order
+   *
+   * /orders/:orderId
+   *
+   * @param {object} request - request data
+   * @param {object} request.headers - request headers
+   * @param {string} request.pathname - request path
+   * @returns {object} - success / error response
+   */
+  delete: async ({headers, pathname}) => {
+    const {status, title} = await evaluateAuthentication(headers);
+
+    if (!/^2\d{2}/.test(`${status}`)) {
+      return createErrorResponse({
+        instance: pathname,
+        status,
+        title,
+      });
+    }
+
+    const [_, orderId] = pathname
+      .split('/')
+      .slice(-1)
+      .find(Boolean);
+    const validatedOrderId = createValidator(orderId, 'orderId')
+      .map(exists('orderId is required'))
+      .find(Boolean);
+    const invalidParams = [validatedOrderId].filter(hasErrors);
+
+    if (invalidParams.length) {
+      return createErrorResponse({
+        errors: invalidParams,
+        instance: pathname,
+        status: 400,
+        title: 'Invalid path params',
+      });
+    }
+
+    try {
+      await dataLib.remove(BASE_DIR, orderId);
+
+      return {metadata: {status: 200}};
+    } catch (err) {
+      return {metadata: {status: 204}};
+    }
+  },
+
+  /**
+   * get an order
+   *
+   * /orders/:orderId
+   *
+   * @param {object} request - request data
+   * @param {object} request.headers - request headers
+   * @param {string} request.pathname - request path
+   * @returns {object} - success / error response
+   */
+  get: async ({headers, pathname}) => {
+    const {status, title} = await evaluateAuthentication(headers);
+
+    if (!/^2\d{2}/.test(`${status}`)) {
+      return createErrorResponse({
+        instance: pathname,
+        status,
+        title,
+      });
+    }
+
+    const [_, orderId] = pathname
+      .split('/')
+      .slice(-1)
+      .find(Boolean);
+    const validatedOrderId = createValidator(orderId, 'orderId')
+      .map(exists('orderId is required'))
+      .find(Boolean);
+    const invalidParams = [validatedOrderId].filter(hasErrors);
+
+    if (invalidParams.length) {
+      return createErrorResponse({
+        errors: invalidParams,
+        instance: pathname,
+        status: 400,
+        title: 'Invalid path params',
+      });
+    }
+
+    try {
+      const result: Order = await dataLib.read(BASE_DIR, orderId);
+
+      return {metadata: {status: 200}, payload: result};
+    } catch (err) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 404,
+        title: 'Not found',
+      });
+    }
+  },
+
+  /**
+   * patch an order
+   *
+   * /orders/:orderId
+   *
+   * @param {object} request - request data
+   * @param {object} request.headers - request headers
+   * @param {string} request.pathname - request path
+   * @param {object} payload - data to update order with
+   * @param {object} payload - data to update order with
+   * @param {object} payload.lineItems - line items to update order with
+   * @returns {object} - success / error response
+   */
+  patch: async ({headers, pathname}, payload) => {
+    const {status, title} = await evaluateAuthentication(headers);
+
+    if (!/^2\d{2}/.test(`${status}`)) {
+      return createErrorResponse({
+        instance: pathname,
+        status,
+        title,
+      });
+    }
+
+    const [_, orderId] = pathname
+      .split('/')
+      .slice(-1)
+      .find(Boolean);
+    const validatedOrderId = createValidator(orderId, 'orderId')
+      .map(exists('orderId is required'))
+      .find(Boolean);
+    const invalidPathParams = [validatedOrderId].filter(hasErrors);
+
+    if (invalidPathParams.length) {
+      return createErrorResponse({
+        errors: invalidPathParams,
+        instance: pathname,
+        status: 400,
+        title: 'Invalid path params',
+      });
+    }
+
+    const lineItems = validateLineItems(payload.lineItems);
+    const invalidParams = [...lineItems].filter(hasErrors);
+
+    if (invalidParams.length) {
+      return createErrorResponse({
+        errors: invalidParams,
+        instance: pathname,
+        status: 400,
+        title: 'Invalid params',
+      });
+    }
+
+    try {
+      const result: Order = await dataLib.patch(BASE_DIR, orderId, {
+        lineItems: [...lineItems].map(lineItem => lineItem.value),
+      });
+
+      return {metadata: {status: 200}, payload: result};
+    } catch (err) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 404,
+        title: 'Not found',
+      });
+    }
+  },
+
   /**
    * create an order for an authenticated user
    *
@@ -25,6 +196,16 @@ const orderMethods: Service<Order> = {
    * @returns {object} - either success with created order or failure response
    */
   post: async ({headers, pathname}, payload) => {
+    const {status, title, token} = await evaluateAuthentication(headers);
+
+    if (!/^2\d{2}/.test(`${status}`)) {
+      return createErrorResponse({
+        instance: pathname,
+        status,
+        title,
+      });
+    }
+
     const requireFields = ['lineItems'];
     const missingRequiredFields = Object.keys(payload).filter(
       key => requireFields.indexOf(key) === -1
@@ -40,9 +221,9 @@ const orderMethods: Service<Order> = {
     }
 
     const lineItems = validateLineItems(payload.lineItems);
-    const invalidLineItems = lineItems.filter(hasErrors);
+    const invalidLineItems = [...lineItems].filter(hasErrors);
 
-    if (invalidLineItems) {
+    if (invalidLineItems.length) {
       return createErrorResponse({
         errors: invalidLineItems,
         instance: pathname,
@@ -53,10 +234,19 @@ const orderMethods: Service<Order> = {
 
     try {
       const id = createRandomString(8);
+      const userId = token.userId;
+      const orderStatus = OrderStatus.Unpaid;
+      const order: Order = {
+        id,
+        lineItems: [...lineItems].map(lineItem => lineItem.value),
+        status: orderStatus,
+        userId,
+      };
+      const result = await dataLib.create(BASE_DIR, id, order);
 
       return {
         metadata: {status: 201},
-        payload: {id, lineItems: [], status: OrderStatus.Unpaid, userId: 's'},
+        payload: result,
       };
     } catch (err) {
       return createErrorResponse({
