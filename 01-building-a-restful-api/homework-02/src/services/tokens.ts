@@ -220,10 +220,10 @@ const tokenMethods: Service = {
     // create token
     const id = createRandomString(10);
     const expires = getExpiresTime();
-    const data = {
-      email: email.value,
+    const data: Token = {
       expires,
       id,
+      userId: email.value,
     };
 
     try {
