@@ -3,6 +3,7 @@ version: 2
 
 variables:
   endpoint: orders
+  password: 'password'
   schemaValidate:
     properties:
       id:
@@ -23,14 +24,73 @@ variables:
       required:
         - id
         - lineItems
-        - userId
         - status
+        - userId
 
 requests:
-  orders_create:
+  # begin setup
+  orders_user_create:
+    request:
+      url: <$ globalBaseUrl $>/users
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: '<$ Faker("internet.email") $>'
+          password: '<$ password $>'
+
+  orders_token_create:
+    request:
+      url: <$ globalBaseUrl $>/tokens
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ orders_user_create.content.email $>
+          password: '<$ password $>'
+  # end setup
+
+  # begin unauthenticated
+  orders_create_unauthenticated:
     request:
       url: <$ globalBaseUrl $>/<$ endpoint $>
       method: POST
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  orders_get_unauthenticated:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  orders_delete_unauthenticated:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  orders_patch_unauthenticated:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
+      method: PATCH
+    validate:
+      - jsonpath: status
+        expect: 401
+  # end unauthenticated
+
+  orders_create:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      headers:
+        - name: Authorization
+          value: 'hmac <$ orders_user_create.content.email $>:<$ orders_token_create.content.id $>'
       postData:
         mimeType: application/json
         text:
@@ -50,8 +110,11 @@ requests:
 
   orders_get:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>'
       method: GET
+      headers:
+        - name: Authorization
+          value: 'hmac <$ orders_user_create.content.email $>:<$ orders_token_create.content.id $>'
     validate:
       - jsonpath: status
         expect: 200
@@ -61,16 +124,22 @@ requests:
 
   orders_delete:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>'
       method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac <$ orders_user_create.content.email $>:<$ orders_token_create.content.id $>'
     validate:
       - jsonpath: status
         expect: 204
 
   orders_patch:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>'
       method: PATCH
+      headers:
+        - name: Authorization
+          value: 'hmac <$ orders_user_create.content.email $>:<$ orders_token_create.content.id $>'
     validate:
       - jsonpath: status
         expect: 200
