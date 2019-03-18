@@ -14,8 +14,9 @@ enum OrderStatus {
 interface Order {
   id: string;
   lineItems: OrderLineItem[];
-  userId: User['id'];
+  paymentId?: string;
   status: OrderStatus;
+  userId: User['id'];
 }
 
 export {Order, OrderLineItem, OrderStatus};
