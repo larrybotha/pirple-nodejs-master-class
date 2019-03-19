@@ -21,11 +21,11 @@ variables:
               type: [number]
             quantity:
               type: [number]
-      required:
-        - id
-        - lineItems
-        - status
-        - userId
+    required:
+      - id
+      - lineItems
+      - status
+      - userId
 
 requests:
   # begin setup
@@ -122,6 +122,38 @@ requests:
         jsonschema: <$ schemaValidate | dump |  safe $>
     # log: true
 
+  orders_patch:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>'
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: 'hmac <$ orders_user_create.content.email $>:<$ orders_token_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+          lineItems:
+            - id: 3
+              quantity: 10
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content.lineItems[0].id
+        expect: 3
+      - jsonpath: content.lineItems[0].quantity
+        expect: 10
+
+  orders_get_nonexistent_order:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/123'
+      method: GET
+      headers:
+        - name: Authorization
+          value: 'hmac <$ orders_user_create.content.email $>:<$ orders_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 404
+
   orders_delete:
     request:
       url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>'
@@ -131,18 +163,15 @@ requests:
           value: 'hmac <$ orders_user_create.content.email $>:<$ orders_token_create.content.id $>'
     validate:
       - jsonpath: status
-        expect: 204
+        expect: 200
 
-  orders_patch:
+  orders_delete_nonexistent:
     request:
       url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ orders_create.content.id $>'
-      method: PATCH
+      method: DELETE
       headers:
         - name: Authorization
           value: 'hmac <$ orders_user_create.content.email $>:<$ orders_token_create.content.id $>'
     validate:
       - jsonpath: status
-        expect: 200
-      - jsonpath: content
-        jsonschema: <$ schemaValidate | dump |  safe $>
-    # log: true
+        expect: 204

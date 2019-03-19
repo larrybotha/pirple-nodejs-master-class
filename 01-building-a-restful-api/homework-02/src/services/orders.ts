@@ -40,8 +40,8 @@ const orderMethods: Service<Order> = {
 
     const [_, orderId] = pathname
       .split('/')
-      .slice(-1)
-      .find(Boolean);
+      .filter(p => !/\//.test(p))
+      .filter(Boolean);
     const validatedOrderId = createValidator(orderId, 'orderId')
       .map(exists('orderId is required'))
       .find(Boolean);
@@ -57,6 +57,7 @@ const orderMethods: Service<Order> = {
     }
 
     try {
+      await dataLib.read(BASE_DIR, orderId);
       await dataLib.remove(BASE_DIR, orderId);
 
       return {metadata: {status: 200}};
@@ -88,8 +89,8 @@ const orderMethods: Service<Order> = {
 
     const [_, orderId] = pathname
       .split('/')
-      .slice(-1)
-      .find(Boolean);
+      .filter(p => !/\//.test(p))
+      .filter(Boolean);
     const validatedOrderId = createValidator(orderId, 'orderId')
       .map(exists('orderId is required'))
       .find(Boolean);
@@ -143,8 +144,8 @@ const orderMethods: Service<Order> = {
 
     const [_, orderId] = pathname
       .split('/')
-      .slice(-1)
-      .find(Boolean);
+      .filter(p => !/\//.test(p))
+      .filter(Boolean);
     const validatedOrderId = createValidator(orderId, 'orderId')
       .map(exists('orderId is required'))
       .find(Boolean);
