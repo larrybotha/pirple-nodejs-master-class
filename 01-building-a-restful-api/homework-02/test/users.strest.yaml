@@ -6,42 +6,23 @@ variables:
   name: 'foo'
   address: 'bar'
   schemaValidate:
-      properties:
-        address:
-          type: [string]
-        email:
-          type: [string]
-        name:
-          type: [string]
-        id:
-          types: [string]
-      required:
-        - email
-        - id
-        - name
-        - address
-      additionalProperties: false
+    properties:
+      address:
+        type: [string]
+      email:
+        type: [string]
+      name:
+        type: [string]
+      id:
+        types: [string]
+    required:
+      - email
+      - id
+      - name
+      - address
+    additionalProperties: false
 
 requests:
-  users_get_nonexistent:
-    request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
-      method: GET
-    validate:
-      - jsonpath: status
-        expect: 404
-
-  users_delete_nonexisting:
-    request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
-      method: DELETE
-      headers:
-        - name: Authorization
-          value: hmac foo@test.com:<$ tokens_create.content.id $>
-    validate:
-      - jsonpath: status
-        expect: 204
-
   users_create:
     request:
       url: '<$ globalBaseUrl $>/<$ endpoint $>'
@@ -72,6 +53,9 @@ requests:
     request:
       url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
       method: GET
+      headers:
+        - name: Authorization
+          value: hmac <$ users_create.content.email $>:<$ users_token_create.content.id $>
     validate:
       - jsonpath: status
         expect: 200
@@ -88,9 +72,12 @@ requests:
         text:
           name: <$ name $>
           address: <$ address $>
+      headers:
+        - name: Authorization
+          value: hmac <$ users_create.content.email $>:<$ users_token_create.content.id $>
     validate:
       - jsonpath: status
-        expect: 201
+        expect: 200
       - jsonpath: content
         jsonschema: <$ schemaValidate | dump | safe $>
       - jsonpath: content.name
@@ -98,13 +85,47 @@ requests:
       - jsonpath: content.address
         expect: '<$ address $>'
 
-  users_delete_without_auth:
+  # start invalid token requests
+  users_get_with_invalid_token:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
+      method: GET
+      headers:
+        - name: Authorization
+          value: hmac foo@test.com:<$ tokens_create.content.id $>
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  users_delete_with_invalid_token:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: hmac foo@test.com:<$ tokens_create.content.id $>
+    validate:
+      - jsonpath: status
+        expect: 403
+  # end invalid token requests
+
+  # start unauthorized requests
+  users_get_unauthorized:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  users_delete_unauthorized:
     request:
       url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
       method: DELETE
     validate:
       - jsonpath: status
         expect: 401
+  # end unauthorized requests
 
   users_delete:
     request:
@@ -126,8 +147,8 @@ requests:
         text:
           password: <$ password $>
     validate:
-    - jsonpath: status
-      expect: 400
+      - jsonpath: status
+        expect: 400
 
   users_create_missing_password:
     request:
@@ -138,5 +159,5 @@ requests:
         text:
           email: <$ users_create.content.email $>
     validate:
-    - jsonpath: status
-      expect: 400
+      - jsonpath: status
+        expect: 400
