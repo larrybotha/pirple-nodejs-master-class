@@ -47,7 +47,9 @@ const userMethods: Service<UserResponsePayload> = {
    * /users/:email
    */
   delete: async ({headers, pathname}, payload) => {
-    const {status: authStatus, title} = await evaluateAuthentication(headers);
+    const {status: authStatus, title, token} = await evaluateAuthentication(
+      headers
+    );
 
     if (!/^2\d{2}/.test(`${authStatus}`)) {
       return createErrorResponse({
@@ -64,6 +66,14 @@ const userMethods: Service<UserResponsePayload> = {
       .map(exists('email path parameter is required'))
       .find(Boolean);
     const invalidParams = [validatedEmail].filter(hasErrors);
+
+    if (token.userId !== emailParam) {
+      return createErrorResponse({
+	instance: pathname,
+	status: 403,
+	title: 'You are not authorised to access this user',
+      });
+    }
 
     if (invalidParams.length) {
       return getInvalidParamsResponse(invalidParams, pathname);
