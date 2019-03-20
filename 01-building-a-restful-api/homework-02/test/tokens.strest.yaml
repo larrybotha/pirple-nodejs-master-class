@@ -9,12 +9,12 @@ variables:
         type: string
       expires:
         type: number
-      email:
+      userId:
         type: string
     required:
       - id
       - expires
-      - email
+      - userId
 
 requests:
   # setup
@@ -51,12 +51,12 @@ requests:
           email: <$ tokens_user_create.content.email $>
           password: <$ password $>
     validate:
-    - jsonpath: status
-      expect: 201
-    - jsonpath: content
-      jsonschema: <$ schemaValidate | dump | safe $>
-    - jsonpath: content.email
-      expect: <$ tokens_user_create.content.email $>
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: content.userId
+        expect: <$ tokens_user_create.content.email $>
 
   tokens_get:
     request:
@@ -66,12 +66,12 @@ requests:
         - name: Authorization
           value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
     validate:
-    - jsonpath: status
-      expect: 200
-    - jsonpath: content
-      jsonschema: <$ schemaValidate | dump | safe $>
-    - jsonpath: content.email
-      expect: <$ tokens_user_create.content.email $>
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: content.userId
+        expect: <$ tokens_user_create.content.email $>
 
   tokens_patch:
     request:
@@ -85,10 +85,11 @@ requests:
         text:
           extend: true
     validate:
-    - jsonpath: status
-      expect: 200
-    - jsonpath: content
-      jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
 
   # missing auth headers
   tokens_create_missing_email:
@@ -100,8 +101,8 @@ requests:
         text:
           password: <$ password $>
     validate:
-    - jsonpath: status
-      expect: 400
+      - jsonpath: status
+        expect: 400
 
   tokens_create_missing_password:
     request:
@@ -112,32 +113,32 @@ requests:
         text:
           email: <$ tokens_user_create.content.email $>
     validate:
-    - jsonpath: status
-      expect: 400
+      - jsonpath: status
+        expect: 400
 
   tokens_get_missing_auth_header:
     request:
       url: <$ globalBaseUrl $><$ endpoint $>/<$ tokens_create.content.id $>
       method: GET
     validate:
-    - jsonpath: status
-      expect: 401
+      - jsonpath: status
+        expect: 401
 
   tokens_patch_missing_auth_header:
     request:
       url: <$ globalBaseUrl $><$ endpoint $>
       method: PATCH
     validate:
-    - jsonpath: status
-      expect: 401
+      - jsonpath: status
+        expect: 401
 
   tokens_delete_missing_auth_header:
     request:
       url: <$ globalBaseUrl $><$ endpoint $>
       method: DELETE
     validate:
-    - jsonpath: status
-      expect: 401
+      - jsonpath: status
+        expect: 401
 
   # teardown
   tokens_user_delete:
