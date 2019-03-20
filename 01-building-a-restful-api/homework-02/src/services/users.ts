@@ -69,9 +69,9 @@ const userMethods: Service<UserResponsePayload> = {
 
     if (token.userId !== emailParam) {
       return createErrorResponse({
-	instance: pathname,
-	status: 403,
-	title: 'You are not authorised to access this user',
+        instance: pathname,
+        status: 403,
+        title: 'You are not authorised to access this user',
       });
     }
 
@@ -101,11 +101,30 @@ const userMethods: Service<UserResponsePayload> = {
    *
    * /users/:email
    */
-  get: async ({pathname}) => {
+  get: async ({headers, pathname}) => {
+    const {status: authStatus, title, token} = await evaluateAuthentication(
+      headers
+    );
+
+    if (!/^2\d{2}/.test(`${authStatus}`)) {
+      return createErrorResponse({
+        status: authStatus,
+        title,
+      });
+    }
+
     const email = pathname
       .split('/')
       .slice(-1)
       .find(Boolean);
+
+    if (token.userId !== email) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 403,
+        title: 'You are not authorised to access this user',
+      });
+    }
 
     try {
       const result: User = await dataLib.read(BASE_DIR, email);
@@ -136,9 +155,20 @@ const userMethods: Service<UserResponsePayload> = {
    * @param {object?} payload.name - user's name
    * @param {object?} payload.password - user's password
    * @param {object?} payload.address - user's address
-   * @returns {undefined}
+   * @returns {object} response - error response or updated user
    */
-  patch: async ({pathname}, payload: Partial<User>) => {
+  patch: async ({headers, pathname}, payload: Partial<User>) => {
+    const {status: authStatus, title, token} = await evaluateAuthentication(
+      headers
+    );
+
+    if (!/^2\d{2}/.test(`${authStatus}`)) {
+      return createErrorResponse({
+        status: authStatus,
+        title,
+      });
+    }
+
     const emailParam = pathname
       .split('/')
       .slice(-1)
@@ -152,12 +182,20 @@ const userMethods: Service<UserResponsePayload> = {
       return getInvalidParamsResponse(invalidParams, pathname);
     }
 
+    if (token.userId !== emailParam) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 403,
+        title: 'You are not authorised to update this user',
+      });
+    }
+
     const email = createValidator(payload.email, 'email').find(Boolean);
     const name = createValidator(payload.name, 'name').find(Boolean);
     const address = createValidator(payload.address, 'address').find(Boolean);
     const password = payload.password
       ? validatePassword(payload.password)
-      : createValidator('password', undefined).find(Boolean);
+      : createValidator(undefined, 'password').find(Boolean);
     const invalidFields = [email, name, address, password].filter(hasErrors);
 
     if (invalidFields.length) {
@@ -169,9 +207,9 @@ const userMethods: Service<UserResponsePayload> = {
       });
     }
 
-    const fieldsToUpdate = [email, name, address, password].filter(
-      v => !hasErrors(v)
-    );
+    const fieldsToUpdate = [email, name, address, password]
+      .filter(v => !hasErrors(v))
+      .filter(v => Boolean(v.value));
 
     try {
       const newUserData = fieldsToUpdate.reduce(
