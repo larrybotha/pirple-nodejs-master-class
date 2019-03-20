@@ -1,0 +1,142 @@
+---
+version: 2
+
+variables:
+  endpoint: payments
+  password: 'password'
+  schemaValidate:
+    properties:
+      id:
+        type: [string]
+    required:
+      - id
+
+requests:
+  # begin setup
+  payments_user_create:
+    request:
+      url: <$ globalBaseUrl $>/users
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: '<$ Faker("internet.email") $>'
+          password: '<$ password $>'
+
+  payments_token_create:
+    request:
+      url: <$ globalBaseUrl $>/tokens
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ payments_user_create.content.email $>
+          password: '<$ password $>'
+
+  payments_order_create:
+    request:
+      url: '<$ globalBaseUrl $>/orders'
+      method: POST
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: application/json
+        text:
+          lineItems:
+            - id: 1
+              quantity: 1
+            - id: 2
+              quantity: 3
+  # end setup
+
+  # begin unauthenticated requests
+  # end unauthenticated requests
+
+  # begin unauthorized requests
+  # end unauthorized requests
+
+  # begin success requests
+  payments_create:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: application/json
+        text:
+    validate:
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump |  safe $>
+    # log: true
+
+  payments_get:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ payments_create.content.id $>'
+      method: GET
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump |  safe $>
+    # log: true
+
+  payments_patch:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ payments_create.content.id $>'
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+    validate:
+      - jsonpath: status
+        expect: 200
+
+  payments_delete:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ payments_create.content.id $>'
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 200
+
+  payments_delete_nonexistent:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ payments_create.content.id $>'
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 204
+  # end success requests
+
+  # begin not found requests
+  payments_get_nonexistent:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/123'
+      method: GET
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 404
+  # end not found requests
+
+  # begin cleanup requests
+  # end cleanup requests
