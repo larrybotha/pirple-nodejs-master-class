@@ -11,6 +11,7 @@ import {validateEmail, validatePassword} from '../validations/users';
 
 import {createErrorResponse, createService} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
+import {getInvalidParamsResponse} from './utils/invalid-params';
 
 const debug = debuglog('users');
 const BASE_DIR = 'users';
@@ -22,22 +23,6 @@ const getAllowedResponsePayload: GetAllowedResponsePayload = user => {
   const {password, ...rest} = user;
 
   return rest;
-};
-
-type GetInvalidParamsResonse = (
-  invalidParams: Validation[],
-  pathname: string
-) => ResponseError;
-const getInvalidParamsResponse: GetInvalidParamsResonse = (
-  invalidParams,
-  pathname
-) => {
-  return createErrorResponse({
-    errors: invalidParams,
-    instance: pathname,
-    status: 400,
-    title: 'Invalid path params',
-  });
 };
 
 const userMethods: Service<UserResponsePayload> = {
