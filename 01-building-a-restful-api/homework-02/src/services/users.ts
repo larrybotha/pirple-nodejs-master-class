@@ -41,10 +41,15 @@ const getInvalidParamsResponse: GetInvalidParamsResonse = (
 };
 
 const userMethods: Service<UserResponsePayload> = {
-  /*
+  /**
    * Delete a user
    *
    * /users/:email
+   *
+   * @param {object} request - request data
+   * @param {string} request.pathname - service path and params
+   * @param {object} request.headers - request headers
+   * @returns {object} response - error response or user
    */
   delete: async ({headers, pathname}, payload) => {
     const {status: authStatus, title, token} = await evaluateAuthentication(
@@ -96,10 +101,15 @@ const userMethods: Service<UserResponsePayload> = {
     return {metadata: {status}};
   },
 
-  /*
+  /**
    * Get a user
    *
    * /users/:email
+   *
+   * @param {object} request - request data
+   * @param {string} request.pathname - service path and params
+   * @param {object} request.headers - request headers
+   * @returns {object} response - error response or user
    */
   get: async ({headers, pathname}) => {
     const {status: authStatus, title, token} = await evaluateAuthentication(
@@ -148,13 +158,15 @@ const userMethods: Service<UserResponsePayload> = {
    *
    * /users/:email
    *
-   * @param {string} request endpoint - /users/:email
+   * @param {object} request - request data
+   * @param {string} request.pathname - service path and params
+   * @param {object} request.headers - request headers
    * @param {object} payload - payload sent in the request
    * TODO: change json filename if email is patched
-   * @param {object?} payload.email - user's email
-   * @param {object?} payload.name - user's name
-   * @param {object?} payload.password - user's password
-   * @param {object?} payload.address - user's address
+   * @param {string?} payload.email - user's email
+   * @param {string?} payload.name - user's name
+   * @param {string?} payload.password - user's password
+   * @param {string?} payload.address - user's address
    * @returns {object} response - error response or updated user
    */
   patch: async ({headers, pathname}, payload: Partial<User>) => {
@@ -164,6 +176,7 @@ const userMethods: Service<UserResponsePayload> = {
 
     if (!/^2\d{2}/.test(`${authStatus}`)) {
       return createErrorResponse({
+        instance: pathname,
         status: authStatus,
         title,
       });
@@ -237,14 +250,18 @@ const userMethods: Service<UserResponsePayload> = {
     }
   },
 
-  /*
-   * Create a user.
-   *
-   * Required fields:
-   *  password
-   *  email
+  /**
+   * Create a user
    *
    * /users
+   *
+   * @param {object} request - request data
+   * @param {object} payload - payload sent in the request
+   * @param {string} payload.email - user's email
+   * @param {string} payload.password - user's password
+   * @param {string?} payload.name - user's name
+   * @param {string?} payload.address - user's address
+   * @returns {object} response - error response or created user
    */
   post: async (req, payload) => {
     const password = validatePassword(payload.password);
