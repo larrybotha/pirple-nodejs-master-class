@@ -18,17 +18,6 @@ variables:
 
 requests:
   # setup
-  tokens_setup:
-    request:
-      url: https://postman-echo.com/post
-      method: POST
-      postData:
-        mimeType: application/json
-        text:
-          email:
-            value: <$ Faker("internet.email") $>
-    # log: true
-
   tokens_user_create:
     request:
       url: <$ globalBaseUrl $>/users
@@ -140,8 +129,9 @@ requests:
       - jsonpath: status
         expect: 401
 
-  # teardown
+  # start cleanup
   tokens_user_delete:
     request:
       url: <$ globalBaseUrl $>/users/<$ tokens_user_create.content.email $>
       method: DELETE
+  # end cleanup
