@@ -1,0 +1,227 @@
+---
+version: 2
+
+variables:
+  pathPart1: orders
+  pathPart2: payments
+  password: 'password'
+  schemaValidate:
+    properties:
+      id:
+        type: [string]
+      orderId:
+        type: [string]
+      userId:
+        type: [string]
+      entries:
+        type: [array]
+        items:
+          type: [object]
+          properties:
+            amount:
+              type: [number]
+            date:
+              type: [string]
+    required:
+      - id
+      - userId
+      - orderId
+      - entities
+
+requests:
+  # begin setup
+  payments_user_create:
+    request:
+      url: <$ globalBaseUrl $>/users
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: '<$ Faker("internet.email") $>'
+          password: '<$ password $>'
+
+  payments_token_create:
+    request:
+      url: <$ globalBaseUrl $>/tokens
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ payments_user_create.content.email $>
+          password: '<$ password $>'
+
+  payments_order_create:
+    request:
+      url: '<$ globalBaseUrl $>/orders'
+      method: POST
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: application/json
+        text:
+          lineItems:
+            - id: 1
+              quantity: 1
+            - id: 2
+              quantity: 3
+  # end setup
+
+  # begin success requests
+  payments_create:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: POST
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: application/json
+    validate:
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump |  safe $>
+    # log: true
+
+  payments_patch:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump |  safe $>
+    # log: true
+
+  payments_get:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: GET
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump |  safe $>
+    # log: true
+  # end success requests
+
+  # begin not found requests
+  payments_get_nonexistent:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/foo/<$ pathPart2 $>'
+      method: GET
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 404
+  # end not found requests
+
+  # begin unauthenticated requests
+  payments_create_unauthenticated:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: POST
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  payments_get_unauthenticated:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 401
+  # end unauthenticated requests
+
+  # begin unauthorized requests
+  payments_create_unauthorized:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: POST
+      headers:
+        - name: Authorization
+          value: 'hmac foo@example.com:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  payments_get_unauthorized:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac foo@example.com:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 403
+  # end unauthorized requests
+
+  # begin forbidden requests
+  payments_forbidden_authenticated_delete:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  payments_forbidden_delete:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  payments_forbidden_put:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: PUT
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 403
+  # end forbidden requests
+
+  # begin cleanup requests
+  payments_order_delete:
+    request:
+      url: '<$ globalBaseUrl $>/orders/<$ payments_order_create.content.id $>'
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+
+  payments_user_delete:
+    request:
+      url: '<$ globalBaseUrl $>/users/<$ payments_user_create.content.email $>'
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+
+  payments_token_delete:
+    request:
+      url: '<$ globalBaseUrl $>/tokens/<$ payments_token_create.content.id $>'
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+  # end cleanup requests

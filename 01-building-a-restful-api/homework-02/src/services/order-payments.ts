@@ -1,6 +1,6 @@
 import {debuglog} from 'util';
 
-import {Payment} from '../types/entities/payments';
+import {OrderPayment} from '../types/entities/order-payments';
 import {ResponseError} from '../types/responses';
 import {Service} from '../types/services';
 
@@ -12,14 +12,14 @@ import {createErrorResponse, createService} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
 import {getInvalidParamsResponse} from './utils/invalid-params';
 
-const debug = debuglog('payments');
-const BASE_DIR = 'payments';
+const debug = debuglog('order-payments');
+const BASE_DIR = 'order-payments';
 
-const paymentMethods: Service<Payment> = {
+const paymentMethods: Service<OrderPayment> = {
   /**
    * Get a payment
    *
-   * /payments/:paymentId
+   * /orders/:orderId/payments
    *
    * @param {object} request - request data
    * @param {string} request.pathname - service path and params
@@ -52,7 +52,7 @@ const paymentMethods: Service<Payment> = {
   /**
    * Patch a payment
    *
-   * /payments/:email
+   * /orders/:orderId/payments
    *
    * @param {object} request - request data
    * @param {string} request.pathname - service path and params
@@ -87,7 +87,7 @@ const paymentMethods: Service<Payment> = {
   /**
    * Create a payment
    *
-   * /payments
+   * /orders/:orderId/payments
    *
    * @param {object} request - request data
    * @param {object} payload - payload sent in the request
@@ -95,6 +95,10 @@ const paymentMethods: Service<Payment> = {
    */
   post: async (req, payload) => {
     try {
+      return {
+        metadata: {status: 201},
+        payload: {orderId: 'foo', userId: 'foo', entities: []},
+      };
     } catch (err) {
       return createErrorResponse({
         errors: [err],
@@ -105,7 +109,7 @@ const paymentMethods: Service<Payment> = {
   },
 };
 
-const allowedMethods = ['get', 'post'];
+const allowedMethods = ['get', 'patch', 'post'];
 
 const payments = createService(allowedMethods, paymentMethods);
 
