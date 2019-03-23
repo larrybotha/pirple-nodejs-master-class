@@ -95,7 +95,7 @@ requests:
           value: hmac foo@test.com:<$ tokens_create.content.id $>
     validate:
       - jsonpath: status
-        expect: 403
+        expect: 401
 
   users_delete_with_invalid_token:
     request:
@@ -106,7 +106,7 @@ requests:
           value: hmac foo@test.com:<$ tokens_create.content.id $>
     validate:
       - jsonpath: status
-        expect: 403
+        expect: 401
   # end invalid token requests
 
   # start unauthorized requests
