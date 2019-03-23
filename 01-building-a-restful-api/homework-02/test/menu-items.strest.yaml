@@ -17,17 +17,6 @@ variables:
 
 requests:
   # begin setup
-  menu_items_setup:
-    request:
-      url: https://postman-echo.com/post
-      method: POST
-      postData:
-        mimeType: application/json
-        text:
-          email:
-            value: <$ Faker("internet.email") $>
-    # log: true
-
   menu_items_user_create:
     request:
       url: <$ globalBaseUrl $>/users
