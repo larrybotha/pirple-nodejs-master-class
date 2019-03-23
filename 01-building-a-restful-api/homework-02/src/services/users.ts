@@ -312,7 +312,7 @@ const usersService: Service<UserResponsePayload> = {
 const usersConfig: ServiceConfig = {
   allowedMethods: ['delete', 'get', 'patch', 'post', 'put'],
   name: 'users',
-  path: 'users/:userId',
+  path: 'users/:email',
   service: usersService,
 };
 
