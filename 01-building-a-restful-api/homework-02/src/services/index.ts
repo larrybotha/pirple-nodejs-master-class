@@ -1,23 +1,19 @@
-import {ResponseError, ResponseSuccess} from '../types/responses';
-import {Service, ServiceMethod} from '../types/services';
+import {ServiceConfig} from '../types/services';
 
-import {menuItemsService as menuItems} from './menu-items';
-import {orders} from './orders';
-import {payments} from './payments';
-import {ping} from './ping';
-import {tokens} from './tokens';
-import {users} from './users';
+import {menuItemsConfig} from './menu-items';
+import {orderPaymentsConfig} from './order-payments';
+import {ordersConfig} from './orders';
+import {pingConfig} from './ping';
+import {tokensConfig} from './tokens';
+import {usersConfig} from './users';
 
-interface Services {
-  [key: string]: ServiceMethod;
-}
-const services: Services = {
-  'menu-items': menuItems,
-  orders,
-  payments,
-  ping,
-  tokens,
-  users,
-};
+const serviceConfigs: ServiceConfig[] = [
+  menuItemsConfig,
+  orderPaymentsConfig,
+  ordersConfig,
+  pingConfig,
+  tokensConfig,
+  usersConfig,
+];
 
-export {services};
+export {serviceConfigs};

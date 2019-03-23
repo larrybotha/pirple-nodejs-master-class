@@ -1,13 +1,13 @@
 import {MenuItem} from '../types/entities/menu-items';
 import {Order, OrderLineItem, OrderStatus} from '../types/entities/orders';
-import {Service} from '../types/services';
+import {Service, ServiceConfig} from '../types/services';
 
 import * as dataLib from '../data';
 import {createRandomString} from '../helpers';
 
 import {createValidator, exists, hasErrors} from '../validations';
 import {validateLineItems} from '../validations/line-items';
-import {createErrorResponse, createService} from './utils';
+import {createErrorResponse} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
 
 interface OrderPostPayload {
@@ -16,7 +16,7 @@ interface OrderPostPayload {
 
 const BASE_DIR = 'orders';
 
-const orderMethods: Service<Order> = {
+const ordersService: Service<Order> = {
   /**
    * delete an order
    *
@@ -258,8 +258,11 @@ const orderMethods: Service<Order> = {
   },
 };
 
-const allowedMethods = ['get', 'post', 'patch', 'delete'];
+const ordersConfig: ServiceConfig = {
+  allowedMethods: ['get', 'post', 'patch', 'delete'],
+  name: 'orders',
+  path: 'orders/:orderId',
+  service: ordersService,
+};
 
-const orders = createService(allowedMethods, orderMethods);
-
-export {orders};
+export {ordersConfig};

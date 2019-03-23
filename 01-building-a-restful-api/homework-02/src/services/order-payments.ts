@@ -8,14 +8,14 @@ import * as dataLib from '../data';
 import {createHash, createRandomString} from '../helpers';
 import {createValidator, exists, hasErrors, Validation} from '../validations';
 
-import {createErrorResponse, createService} from './utils';
+import {createErrorResponse} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
 import {getInvalidParamsResponse} from './utils/invalid-params';
 
 const debug = debuglog('order-payments');
 const BASE_DIR = 'order-payments';
 
-const paymentMethods: Service<OrderPayment> = {
+const orderPaymentsService: Service<OrderPayment> = {
   /**
    * Get a payment
    *
@@ -109,8 +109,11 @@ const paymentMethods: Service<OrderPayment> = {
   },
 };
 
-const allowedMethods = ['get', 'patch', 'post'];
+const orderPaymentsConfig = {
+  allowedMethods: ['get', 'patch', 'post'],
+  name: 'order-payments',
+  path: 'orders/:orderId/payments/:paymentId',
+  service: orderPaymentsService,
+};
 
-const payments = createService(allowedMethods, paymentMethods);
-
-export {payments};
+export {orderPaymentsConfig};

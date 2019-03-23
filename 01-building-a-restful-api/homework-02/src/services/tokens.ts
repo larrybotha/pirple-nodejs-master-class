@@ -1,7 +1,7 @@
 import {Token} from '../types/entities/tokens';
 import {User} from '../types/entities/users';
 import {RequestData} from '../types/requests';
-import {Service, ServiceMethod} from '../types/services';
+import {Service, ServiceConfig, ServiceMethod} from '../types/services';
 
 import * as dataLib from '../data';
 import {createHash, createRandomString} from '../helpers';
@@ -13,7 +13,7 @@ import {
 } from '../validations/index';
 import {validateEmail, validatePassword} from '../validations/users';
 
-import {createErrorResponse, createService} from './utils';
+import {createErrorResponse} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
 
 interface TokenPostPayload {
@@ -33,7 +33,7 @@ const getExpiresTime = () => {
   return Date.now() + EXPIRY_TIME;
 };
 
-const tokenMethods: Service = {
+const tokensService: Service = {
   /*
    * Delete a token for an authenticated user
    *
@@ -241,11 +241,11 @@ const tokenMethods: Service = {
   },
 };
 
-const allowedMethods = ['delete', 'get', 'post', 'patch'];
+const tokensConfig: ServiceConfig = {
+  allowedMethods: ['delete', 'get', 'post', 'patch'],
+  name: 'tokens',
+  path: 'tokens/:tokenId',
+  service: tokensService,
+};
 
-const tokens: ServiceMethod<string> = createService(
-  allowedMethods,
-  tokenMethods
-);
-
-export {tokens};
+export {tokensConfig};

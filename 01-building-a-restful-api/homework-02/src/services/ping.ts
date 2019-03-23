@@ -1,15 +1,16 @@
-import {Service, ServiceMethod} from '../types/services';
+import {Service, ServiceConfig, ServiceMethod} from '../types/services';
 
-import {createService} from './utils';
-
-const pingMethods: Service<string> = {
+const pingService: Service<string> = {
   get: async () => {
     return {metadata: {status: 200}, payload: 'ok'};
   },
 };
 
-const allowedMethods = ['get'];
+const pingConfig: ServiceConfig = {
+  allowedMethods: ['get'],
+  name: 'ping',
+  path: 'ping',
+  service: pingService,
+};
 
-const ping: ServiceMethod<string> = createService(allowedMethods, pingMethods);
-
-export {ping};
+export {pingConfig};

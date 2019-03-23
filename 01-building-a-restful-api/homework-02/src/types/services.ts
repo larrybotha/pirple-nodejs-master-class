@@ -17,4 +17,11 @@ interface Service<Entity = any> {
   [key: string]: ServiceMethod<Entity>;
 }
 
-export {RequestData, ServiceMethod, Service};
+interface ServiceConfig {
+  allowedMethods: string[];
+  name: string;
+  path: string;
+  service: Service;
+}
+
+export {RequestData, ServiceConfig, ServiceMethod, Service};

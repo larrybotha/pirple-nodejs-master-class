@@ -1,15 +1,15 @@
 import {debuglog} from 'util';
 
 import {MenuItem} from '../types/entities/menu-items';
-import {Service} from '../types/services';
+import {Service, ServiceConfig} from '../types/services';
 
 import {menuItems} from '../fixtures/menu-items';
-import {createErrorResponse, createService} from './utils';
+import {createErrorResponse} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
 
 const debug = debuglog('menu-items');
 
-const menuItemsMethods: Service<MenuItem> = {
+const menuItemsService: Service<MenuItem> = {
   /**
    * Get menu items
    *
@@ -47,8 +47,11 @@ const menuItemsMethods: Service<MenuItem> = {
   },
 };
 
-const allowedMethods = ['get'];
+const menuItemsConfig: ServiceConfig = {
+  allowedMethods: ['get'],
+  name: 'menu-items',
+  path: 'menu-items',
+  service: menuItemsService,
+};
 
-const menuItemsService = createService(allowedMethods, menuItemsMethods);
-
-export {menuItemsService};
+export {menuItemsConfig};

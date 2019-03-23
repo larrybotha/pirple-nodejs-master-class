@@ -2,14 +2,14 @@ import {debuglog} from 'util';
 
 import {User} from '../types/entities/users';
 import {ResponseError} from '../types/responses';
-import {Service} from '../types/services';
+import {Service, ServiceConfig} from '../types/services';
 
 import * as dataLib from '../data';
 import {createHash, createRandomString, safeJSONParse} from '../helpers';
 import {createValidator, exists, hasErrors, Validation} from '../validations';
 import {validateEmail, validatePassword} from '../validations/users';
 
-import {createErrorResponse, createService} from './utils';
+import {createErrorResponse} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
 import {getInvalidParamsResponse} from './utils/invalid-params';
 
@@ -25,7 +25,7 @@ const getAllowedResponsePayload: GetAllowedResponsePayload = user => {
   return rest;
 };
 
-const userMethods: Service<UserResponsePayload> = {
+const usersService: Service<UserResponsePayload> = {
   /**
    * Delete a user
    *
@@ -309,8 +309,11 @@ const userMethods: Service<UserResponsePayload> = {
   },
 };
 
-const allowedMethods = ['delete', 'get', 'patch', 'post', 'put'];
+const usersConfig: ServiceConfig = {
+  allowedMethods: ['delete', 'get', 'patch', 'post', 'put'],
+  name: 'users',
+  path: 'users/:userId',
+  service: usersService,
+};
 
-const users = createService(allowedMethods, userMethods);
-
-export {users};
+export {usersConfig};
