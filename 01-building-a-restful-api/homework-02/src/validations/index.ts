@@ -83,6 +83,18 @@ const hasLength: Validator<{length: number}> = (
     : {...validation, errors: validation.errors.concat(msg)};
 };
 
+const hasMinValue: Validator<number> = (
+  value = 0,
+  msg = `Value must be at least ${value}`
+) => validation => {
+  const previouslyValid = confirmValid(validation);
+  const isValid = previouslyValid && validation.value >= value;
+
+  return isValid || !previouslyValid
+    ? validation
+    : {...validation, errors: validation.errors.concat(msg)};
+};
+
 const hasMinLength: Validator<{length: number}> = (
   {length = 0},
   msg = `Value has length less than ${length}`
@@ -117,6 +129,7 @@ export {
   hasLength,
   hasMaxLength,
   hasMinLength,
+  hasMinValue,
   isOfType,
   isOneOf,
   trim,
