@@ -4,6 +4,7 @@ import {User} from './users';
 interface OrderLineItem {
   itemId: MenuItem['id'];
   quantity: number;
+  total: number;
 }
 
 enum OrderStatus {

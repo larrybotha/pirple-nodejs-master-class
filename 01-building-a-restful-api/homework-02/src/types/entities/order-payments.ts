@@ -6,10 +6,17 @@ interface PaymentEntity {
   amount: number;
 }
 
-interface OrderPayment {
-  userId: User['id'];
-  orderId: Order['id'];
-  entities: PaymentEntity[];
+enum OrderPaymentStatus {
+  Paid = 'paid',
+  Partial = 'partial',
+  Unpaid = 'unpaid',
 }
 
-export {OrderPayment};
+interface OrderPayment {
+  entities: PaymentEntity[];
+  orderId: Order['id'];
+  status: OrderPaymentStatus;
+  userId: User['id'];
+}
+
+export {OrderPayment, OrderPaymentStatus};
