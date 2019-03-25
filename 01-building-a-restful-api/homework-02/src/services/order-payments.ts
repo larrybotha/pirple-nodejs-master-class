@@ -1,16 +1,25 @@
 import {debuglog} from 'util';
 
-import {OrderPayment} from '../types/entities/order-payments';
+import {
+  OrderPayment,
+  OrderPaymentStatus,
+} from '../types/entities/order-payments';
+import {Order} from '../types/entities/orders';
 import {ResponseError} from '../types/responses';
 import {Service} from '../types/services';
-
 import * as dataLib from '../data';
 import {createHash, createRandomString} from '../helpers';
-import {createValidator, exists, hasErrors, Validation} from '../validations';
+import {createValidator, hasErrors, Validation} from '../validations';
+import {validateAmount} from '../validations/order-payments';
 
 import {createErrorResponse} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
 import {getInvalidParamsResponse} from './utils/invalid-params';
+
+enum PaymentStatus {
+  AdditionalPayment,
+  FirstPayment,
+}
 
 const debug = debuglog('order-payments');
 const BASE_DIR = 'order-payments';
@@ -91,9 +100,100 @@ const orderPaymentsService: Service<OrderPayment> = {
    *
    * @param {object} request - request data
    * @param {object} payload - payload sent in the request
+   * @param {number} payload.amount - amount to pay for the order
    * @returns {object} response - error response or created payment
    */
-  post: async (req, payload) => {
+  post: async ({headers, pathname}, payload) => {
+    const {status: authStatus, title, token} = await evaluateAuthentication(
+      headers
+    );
+
+    if (!/^2\d{2}/.test(`${authStatus}`)) {
+      return createErrorResponse({
+        instance: pathname,
+        status: authStatus,
+        title,
+      });
+    }
+
+    const amount = validateAmount(payload.amount);
+    const invalidFields = [amount].filter(hasErrors);
+
+    if (invalidFields.length) {
+      return createErrorResponse({
+        errors: invalidFields,
+        instance: pathname,
+        title: 'Invalid fields',
+      });
+    }
+
+    const [_, orderId] = pathname.split('/').filter(Boolean);
+    let paymentStatus: PaymentStatus;
+    let orderPayment: OrderPayment;
+    let order: Order;
+
+    try {
+      orderPayment = await dataLib.read(BASE_DIR, orderId);
+      paymentStatus = PaymentStatus.AdditionalPayment;
+    } catch (err) {
+      paymentStatus = PaymentStatus.FirstPayment;
+    }
+
+    // return 404 if no order matches id
+    try {
+      order = await dataLib.read('orders', orderId);
+    } catch (err) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 404,
+        title: 'Not found',
+      });
+    }
+
+    const orderTotal = order.lineItems.reduce(
+      (acc, lineItem) => acc + lineItem.total,
+      0
+    );
+
+    // if we this is first payment, patch the current order payment
+    if (paymentStatus === PaymentStatus.FirstPayment) {
+      if (amount.value > orderTotal) {
+        return createErrorResponse({
+          instance: pathname,
+          status: 400,
+          title: `You can't pay more than the total of the order`,
+        });
+      }
+
+      try {
+        const orderPaymentData: OrderPayment = {
+          orderId,
+          entities: [
+            {
+              amount: amount.value,
+              createdAt: Date.now(),
+            },
+          ],
+          userId: token.userId,
+        };
+        const result = await dataLib.create(
+          BASE_DIR,
+          orderId,
+          orderPaymentData
+        );
+
+        return {metadata: {status: 201}, payload: result};
+      } catch (err) {
+        return createErrorResponse({
+          errors: [err],
+          instance: pathname,
+          title: 'Unable to create order payment',
+        });
+      }
+    }
+
+    // if we don't, create a new order-payment with the amount as the first entry
+
     try {
       return {
         metadata: {status: 201},
