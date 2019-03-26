@@ -2,11 +2,8 @@ import {debuglog} from 'util';
 
 import * as dataLib from '../data';
 import {createHash, createRandomString} from '../helpers';
-import {
-  OrderPayment,
-  OrderPaymentStatus,
-} from '../types/entities/order-payments';
-import {Order} from '../types/entities/orders';
+import {OrderPayment} from '../types/entities/order-payments';
+import {Order, OrderStatus} from '../types/entities/orders';
 import {ResponseError} from '../types/responses';
 import {Service} from '../types/services';
 import {createValidator, hasErrors, Validation} from '../validations';
@@ -217,17 +214,19 @@ const orderPaymentsService: Service<OrderPayment> = {
             },
           ],
           orderId,
-          status:
-            amount.value === orderTotal
-              ? OrderPaymentStatus.Paid
-              : OrderPaymentStatus.Partial,
           userId: token.userId,
         };
-        const result = await dataLib.create(
-          BASE_DIR,
-          orderId,
-          orderPaymentData
-        );
+        const newOrder: Order = {
+          ...order,
+          status:
+            amount.value === orderTotal
+              ? OrderStatus.Paid
+              : OrderStatus.Partial,
+        };
+        const [result] = await Promise.all([
+          dataLib.create(BASE_DIR, orderId, orderPaymentData),
+          dataLib.patch('orders', orderId, newOrder),
+        ]);
 
         return {metadata: {status: 201}, payload: result};
       } catch (err) {
