@@ -1,8 +1,8 @@
-import {User} from './users';
 import {Order} from './orders';
+import {User} from './users';
 
 interface PaymentEntity {
-  date: Date;
+  date: number;
   amount: number;
 }
 
