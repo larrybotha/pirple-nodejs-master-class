@@ -1,5 +1,7 @@
 import {debuglog} from 'util';
 
+import * as dataLib from '../data';
+import {createHash, createRandomString} from '../helpers';
 import {
   OrderPayment,
   OrderPaymentStatus,
@@ -7,8 +9,6 @@ import {
 import {Order} from '../types/entities/orders';
 import {ResponseError} from '../types/responses';
 import {Service} from '../types/services';
-import * as dataLib from '../data';
-import {createHash, createRandomString} from '../helpers';
 import {createValidator, hasErrors, Validation} from '../validations';
 import {validateAmount} from '../validations/order-payments';
 
@@ -47,7 +47,12 @@ const orderPaymentsService: Service<OrderPayment> = {
       });
     }
 
+    const [_, orderId] = pathname.split('/').filter(Boolean);
+
     try {
+      const result = await dataLib.read(BASE_DIR, orderId);
+
+      return {metadata: {status: 200}, payload: result};
     } catch (err) {
       return createErrorResponse({
         errors: [err],
@@ -82,7 +87,36 @@ const orderPaymentsService: Service<OrderPayment> = {
       });
     }
 
+    const amount = validateAmount(payload.amount);
+    const invalidFields = [amount].filter(hasErrors);
+
+    if (invalidFields.length) {
+      return createErrorResponse({
+        errors: invalidFields,
+        instance: pathname,
+        status: 400,
+        title: 'Invalid fields',
+      });
+    }
+
+    const [_, orderId] = pathname.split('/').filter(Boolean);
+
     try {
+      const orderPayment: OrderPayment = await dataLib.read(BASE_DIR, orderId);
+      const newOrderPayment: OrderPayment = {
+        ...orderPayment,
+        entities: orderPayment.entities.concat({
+          amount: amount.value,
+          date: Date.now(),
+        }),
+      };
+      const result: OrderPayment = await dataLib.patch(
+        BASE_DIR,
+        orderId,
+        newOrderPayment
+      );
+
+      return {metadata: {status: 200}, payload: result};
     } catch (err) {
       return createErrorResponse({
         errors: [err],
@@ -123,6 +157,7 @@ const orderPaymentsService: Service<OrderPayment> = {
       return createErrorResponse({
         errors: invalidFields,
         instance: pathname,
+        status: 400,
         title: 'Invalid fields',
       });
     }
@@ -150,6 +185,14 @@ const orderPaymentsService: Service<OrderPayment> = {
       });
     }
 
+    if (token.userId !== order.userId) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 403,
+        title: `You are not allowed to create a payment for this order`,
+      });
+    }
+
     const orderTotal = order.lineItems.reduce(
       (acc, lineItem) => acc + lineItem.total,
       0
@@ -167,13 +210,17 @@ const orderPaymentsService: Service<OrderPayment> = {
 
       try {
         const orderPaymentData: OrderPayment = {
-          orderId,
           entities: [
             {
               amount: amount.value,
-              createdAt: Date.now(),
+              date: Date.now(),
             },
           ],
+          orderId,
+          status:
+            amount.value === orderTotal
+              ? OrderPaymentStatus.Paid
+              : OrderPaymentStatus.Partial,
           userId: token.userId,
         };
         const result = await dataLib.create(
@@ -187,13 +234,13 @@ const orderPaymentsService: Service<OrderPayment> = {
         return createErrorResponse({
           errors: [err],
           instance: pathname,
+          status: 500,
           title: 'Unable to create order payment',
         });
       }
     }
 
     // if we don't, create a new order-payment with the amount as the first entry
-
     try {
       return {
         metadata: {status: 201},
