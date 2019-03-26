@@ -29,6 +29,13 @@ const evaluateAuthentication: EvaluateAuthentication = async headers => {
       return errorResponse;
     }
 
+    if (email !== token.userId) {
+      return {
+        status: 403,
+        title: 'Not authorised',
+      };
+    }
+
     return {status: 200, token};
   } catch (err) {
     return errorResponse;
