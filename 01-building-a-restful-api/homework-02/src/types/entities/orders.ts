@@ -9,6 +9,7 @@ interface OrderLineItem {
 
 enum OrderStatus {
   Paid = 'paid',
+  Partial = 'partial',
   Unpaid = 'unpaid',
 }
 
