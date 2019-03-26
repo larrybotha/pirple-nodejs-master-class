@@ -32,9 +32,9 @@
   "devDependencies": {
     "@types/dotenv": "6.1.0",
     "concurrently": "4.1.0",
-    "dotenv": "6.2.0",
-    "jest": "23.6.0",
-    "nodemon": "1.18.9",
+    "dotenv": "7.0.0",
+    "jest": "24.5.0",
+    "nodemon": "1.18.10",
     "strest": "0.0.70"
   }
 }
