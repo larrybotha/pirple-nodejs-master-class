@@ -6,7 +6,7 @@ const validateAmount: ValidateAmount = n => {
 
   return createValidator(n, name)
     .map(exists(`${name} is required`))
-    .map(hasMinValue(1, `${name} must be at least ${length}`))
+    .map(hasMinValue(1, `${name} must be at least 1`))
     .find(Boolean);
 };
 
