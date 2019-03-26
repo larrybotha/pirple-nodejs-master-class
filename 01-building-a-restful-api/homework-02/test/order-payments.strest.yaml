@@ -7,8 +7,6 @@ variables:
   password: 'password'
   schemaValidate:
     properties:
-      id:
-        type: [string]
       orderId:
         type: [string]
       userId:
@@ -21,9 +19,8 @@ variables:
             amount:
               type: [number]
             date:
-              type: [string]
+              type: [number]
     required:
-      - id
       - userId
       - orderId
       - entities
@@ -77,6 +74,8 @@ requests:
           value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
       postData:
         mimeType: application/json
+        text:
+          amount: 1
     validate:
       - jsonpath: status
         expect: 201
@@ -91,6 +90,10 @@ requests:
       headers:
         - name: Authorization
           value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+          amount: 1
     validate:
       - jsonpath: status
         expect: 200
@@ -112,6 +115,90 @@ requests:
         jsonschema: <$ schemaValidate | dump |  safe $>
     # log: true
   # end success requests
+
+  # begin bad requests
+  payments_create_no_amount:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: POST
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  payments_create_invalid_amount_type:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: POST
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+          amount: 'foo'
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  payments_create_negative_amount:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: POST
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+          amount: -1
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  payments_patch_no_amount:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  payments_patch_invalid_amount_type:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+          amount: 'foo'
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  payments_patch_negative_amount:
+    request:
+      url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: 'hmac <$ payments_user_create.content.email $>:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+          amount: -1
+    validate:
+      - jsonpath: status
+        expect: 400
+  # end bad requests
 
   # begin not found requests
   payments_get_nonexistent:
@@ -138,7 +225,7 @@ requests:
   payments_get_unauthenticated:
     request:
       url: '<$ globalBaseUrl $>/<$ pathPart1 $>/<$ payments_order_create.content.id $>/<$ pathPart2 $>'
-      method: DELETE
+      method: GET
     validate:
       - jsonpath: status
         expect: 401
@@ -151,7 +238,11 @@ requests:
       method: POST
       headers:
         - name: Authorization
-          value: 'hmac foo@example.com:<$ payments_token_create.content.id $>'
+          value: 'hmac bar@example.com:<$ payments_token_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+          amount: 1
     validate:
       - jsonpath: status
         expect: 403
