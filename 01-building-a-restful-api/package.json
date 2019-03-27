@@ -20,19 +20,17 @@
     "watch:tsc": "npm run tsc -- -w",
     "watch:test": "npm run test -- --watch",
     "watch:test:api": "npm run test:api -- --watch --runInBand",
-    "watch:server": "source set-env.sh && nodemon dist/src",
-    "watch:server:debug": "source set-env.sh .env && nodemon --inspect dist/src",
-    "watch:server:homework-01": "source set-env.sh .env && nodemon dist/homework-01/src",
-    "watch:server:homework-02": "source set-env.sh ./homework-02/.env && nodemon dist/homework-02/src",
-    "watch:server:homework-02:debug": "source set-env.sh ./homework-02/.env && nodemon --inspect dist/homework-02/src"
+    "watch:server": "env $(cat .env) nodemon dist/src",
+    "watch:server:debug": "env $(cat .env) nodemon --inspect dist/src",
+    "watch:server:homework-01": "env $(cat .env) nodemon dist/homework-01/src",
+    "watch:server:homework-02": "env $(cat ./homework-02/.env) nodemon dist/homework-02/src",
+    "watch:server:homework-02:debug": "env $(cat ./homework-02/.env) nodemon --inspect dist/homework-02/src"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/dotenv": "6.1.0",
     "concurrently": "4.1.0",
-    "dotenv": "7.0.0",
     "jest": "24.5.0",
     "nodemon": "1.18.10",
     "strest": "0.0.70"
