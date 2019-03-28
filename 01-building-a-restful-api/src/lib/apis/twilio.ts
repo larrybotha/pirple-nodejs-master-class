@@ -86,11 +86,11 @@ const sendSms: SendSms = options => {
         return reject(err);
       });
 
-      // write data to request body
+      // Write data to request body and send request
+      // Equivalent to:
+      //  request.write(stringifiedPayload);
+      //  reuuest.end();
       request.end(stringifiedPayload);
-
-      // execute the request
-      request.end();
     } else {
       reject(`Invalid sms fields: ${invalidFields.join(', ')}`);
     }
