@@ -15,11 +15,19 @@ variables:
         type: [string]
       id:
         types: [string]
+      stripeId:
+        types: [string]
+      stripeSourceIds:
+        types: [array]
+        items:
+          type: [string]
     required:
       - email
       - id
       - name
       - address
+      - stripeId
+      - stripeSourceIds
     additionalProperties: false
 
 requests:
