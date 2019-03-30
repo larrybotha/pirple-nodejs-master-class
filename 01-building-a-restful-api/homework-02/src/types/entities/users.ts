@@ -6,8 +6,8 @@ interface User {
   id: string;
   name?: string;
   password: string;
-  stripeId?: StripeCustomer['id'];
-  stripeSourceIds?: string[];
+  stripeId: StripeCustomer['id'];
+  stripeSourceIds: string[];
 }
 
 export {User};
