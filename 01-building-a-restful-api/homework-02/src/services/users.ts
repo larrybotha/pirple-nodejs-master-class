@@ -1,5 +1,6 @@
 import {debuglog} from 'util';
 
+import {StripeCustomer} from '../types/entities/stripe-customer';
 import {User} from '../types/entities/users';
 import {ResponseError} from '../types/responses';
 import {Service, ServiceConfig} from '../types/services';
@@ -8,6 +9,8 @@ import * as dataLib from '../data';
 import {createHash, createRandomString, safeJSONParse} from '../helpers';
 import {createValidator, exists, hasErrors, Validation} from '../validations';
 import {validateEmail, validatePassword} from '../validations/users';
+
+import {createCustomer, deleteCustomer, deleteSource} from '../lib/stripe';
 
 import {createErrorResponse} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
@@ -70,11 +73,30 @@ const usersService: Service<UserResponsePayload> = {
     }
 
     let status = 200;
+    let user: User;
 
     try {
-      await dataLib.read(BASE_DIR, validatedEmail.value);
+      user = await dataLib.read(BASE_DIR, validatedEmail.value);
     } catch (err) {
       status = 204;
+    }
+
+    if (user) {
+      const {stripeId} = user;
+      const sourceIds = user.stripeSourceIds || [];
+
+      try {
+        await Promise.all([
+          deleteCustomer(stripeId),
+          sourceIds.map(id => deleteSource(id)),
+        ]);
+      } catch (err) {
+        return createErrorResponse({
+          errors: [err],
+          status: err.statusCode,
+          title: err.message,
+        });
+      }
     }
 
     try {
@@ -283,6 +305,20 @@ const usersService: Service<UserResponsePayload> = {
       });
     }
 
+    let stripeCustomer: StripeCustomer;
+
+    // naive implementation - creation should be scheduled for later if this fails,
+    // but good enough for now
+    try {
+      stripeCustomer = await createCustomer({email: email.value});
+    } catch (err) {
+      return createErrorResponse({
+        errors: [err],
+        status: err.statusCode,
+        title: err.message,
+      });
+    }
+
     const id = createRandomString(10);
     const user: User = {
       address,
@@ -290,6 +326,8 @@ const usersService: Service<UserResponsePayload> = {
       id,
       name,
       password: hashedPassword,
+      stripeId: stripeCustomer.id,
+      stripeSourceIds: [],
     };
 
     try {
