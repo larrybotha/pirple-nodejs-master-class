@@ -34,7 +34,7 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          email: '<$ Faker("internet.email") $>'
+          email: '<$ Faker("name.firstName") $>@mailinator.com'
           password: '<$ password $>'
 
   payments_token_create:
@@ -75,7 +75,7 @@ requests:
       postData:
         mimeType: application/json
         text:
-          amount: 1
+          amount: 100
     validate:
       - jsonpath: status
         expect: 201
@@ -93,7 +93,7 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          amount: 1
+          amount: 100
     validate:
       - jsonpath: status
         expect: 200
