@@ -1,9 +1,10 @@
 import * as https from 'https';
-import * as querystring from 'querystring';
-import * as util from 'util';
 
 import {config} from '../config';
-import {safeJSONParse} from '../helpers';
+import {createRequest} from '../helpers/create-request';
+
+import {StripeCustomer} from '../types/entities/stripe-customer';
+import {StripeSource} from '../types/entities/stripe-source';
 
 const {stripe} = config.apis;
 const {apiKey, secretKey} = stripe;
@@ -13,65 +14,14 @@ enum SourceType {
 }
 
 const baseRequestOptions: https.RequestOptions = {
-  headers: {Authorization: `Bearer ${secretKey}`},
+  headers: {
+    Authorization: `Bearer ${secretKey}`,
+    // send data as form data
+    'Content-Type': 'application/x-www-form-urlencoded',
+  },
   hostname: 'api.stripe.com',
   method: 'POST',
   protocol: 'https:',
-};
-
-/**
- * createRequest
- *
- * Helper for creating requests
- *
- * @param {object} - request options for this request
- * @param {any} payload - data to send in request
- * @returns {undefined}
- */
-const createRequest = (options: https.RequestOptions, payload?: any) => {
-  // querystring.stringify formats data as required by servers parsing form data
-  const stringifiedPayload = querystring.stringify(payload);
-  const requestOptions = {
-    ...options,
-    headers: {
-      // send data as form data
-      'Content-Type': 'application/x-www-form-urlencoded',
-      // set the content length of the payload
-      // This helps the receiving server know when the request's data has
-      // finished sending
-      'Content-length': stringifiedPayload
-        ? Buffer.byteLength(stringifiedPayload)
-        : 0,
-      ...options.headers,
-    },
-  };
-
-  return new Promise((resolve, reject) => {
-    const request = https.request(requestOptions, res => {
-      const {statusCode} = res;
-      let data: string[] = [];
-      res.setEncoding('utf8');
-
-      res.on('data', d => (data = data.concat(d)));
-
-      res.on('end', (d: string) => {
-        data = data.concat(d);
-        const result = safeJSONParse(data.join(''));
-
-        if (/^2/.test(`${statusCode}`)) {
-          return resolve(result);
-        } else {
-          return reject({statusCode, ...result});
-        }
-      });
-    });
-
-    request.on('error', err => {
-      return reject(err);
-    });
-
-    request.end(stringifiedPayload);
-  });
 };
 
 interface CreateSourceOptions {
@@ -86,9 +36,10 @@ const sourceOptionDefaults: Partial<CreateSourceOptions> = {
   usage: 'reusable',
 };
 
-type CreateSource = (
-  email: CreateSourceOptions['owner']['email']
-) => Promise<any>;
+type CreateSource = (options: {
+  email: CreateSourceOptions['owner']['email'];
+  [key: string]: any;
+}) => Promise<StripeSource>;
 /**
  * createSource
  *
@@ -97,10 +48,11 @@ type CreateSource = (
  * @param {string} email - the email address of the owner of the source
  * @returns {object} - either the new source, or an error
  */
-const createSource: CreateSource = async email => {
+const createSource: CreateSource = async ({email, ...rest}) => {
   const payload = {
     ...sourceOptionDefaults,
-    owner: {email},
+    ...rest,
+    'owner[email]': email,
   };
   const requestOptions: https.RequestOptions = {
     ...baseRequestOptions,
@@ -108,7 +60,7 @@ const createSource: CreateSource = async email => {
   };
 
   try {
-    const result = await createRequest(requestOptions, payload);
+    const result: StripeSource = await createRequest(requestOptions, payload);
 
     return result;
   } catch (err) {
@@ -133,6 +85,43 @@ const deleteSource: DeleteSource = async id => {
 
   try {
     const result = await createRequest(requestOptions);
+
+    return result;
+  } catch (err) {
+    throw err;
+  }
+};
+
+interface CreateChargeOptions {
+  customer: StripeCustomer['id'];
+  source: StripeSource['id'];
+  amount: number;
+  currency: string;
+}
+const baseChargeOptions: Partial<CreateChargeOptions> = {
+  currency: 'usd',
+};
+type CreateCharge = (options: Partial<CreateChargeOptions>) => Promise<any>;
+/**
+ * createCharge
+ *
+ * Create a new charge in Stripe
+ *
+ * @param {object} options - options to set on the user
+ * @param {string} options.customer - stripe customer id
+ * @param {string} options.source - stripe source id
+ * @param {number} options.amount - amount to charge
+ * @param {string} options.currency - currency to charge in
+ * @returns {object} - either the customer from Stripe, or an error
+ */
+const createCharge: CreateCharge = async options => {
+  const payload = {...baseChargeOptions, ...options};
+  const requestOptions: https.RequestOptions = {
+    ...baseRequestOptions,
+    path: '/v1/charges',
+  };
+  try {
+    const result = await createRequest(requestOptions, payload);
 
     return result;
   } catch (err) {
@@ -224,6 +213,7 @@ const deleteCustomer: DeleteCustomer = async id => {
 };
 
 export {
+  createCharge,
   createCustomer,
   createSource,
   deleteCustomer,

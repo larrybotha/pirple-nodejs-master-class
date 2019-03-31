@@ -10,7 +10,13 @@ import {createHash, createRandomString, safeJSONParse} from '../helpers';
 import {createValidator, exists, hasErrors, Validation} from '../validations';
 import {validateEmail, validatePassword} from '../validations/users';
 
-import {createCustomer, deleteCustomer, deleteSource} from '../lib/stripe';
+import {
+  createCustomer,
+  createSource,
+  deleteCustomer,
+  deleteSource,
+  updateCustomer,
+} from '../lib/stripe';
 
 import {createErrorResponse} from './utils';
 import {evaluateAuthentication} from './utils/authentication';
@@ -310,7 +316,11 @@ const usersService: Service<UserResponsePayload> = {
     // naive implementation - creation should be scheduled for later if this fails,
     // but good enough for now
     try {
-      stripeCustomer = await createCustomer({email: email.value});
+      const source = await createSource({email: email.value});
+      stripeCustomer = await createCustomer({
+        email: email.value,
+        source: source.id,
+      });
     } catch (err) {
       return createErrorResponse({
         errors: [err],

@@ -1,9 +1,13 @@
 import {debuglog} from 'util';
 
+import {createCharge, createSource, updateCustomer} from '../lib/stripe';
+
 import * as dataLib from '../data';
 import {createHash, createRandomString} from '../helpers';
 import {OrderPayment} from '../types/entities/order-payments';
 import {Order, OrderStatus} from '../types/entities/orders';
+import {StripeSource} from '../types/entities/stripe-source';
+import {User} from '../types/entities/users';
 import {ResponseError} from '../types/responses';
 import {Service} from '../types/services';
 import {createValidator, hasErrors, Validation} from '../validations';
@@ -190,21 +194,67 @@ const orderPaymentsService: Service<OrderPayment> = {
       });
     }
 
+    let user: User;
+
+    try {
+      user = await dataLib.read('users', token.userId);
+    } catch (err) {
+      return createErrorResponse({
+        errors: [err],
+        status: 404,
+        title: `Can't find user`,
+      });
+    }
+
+    let stripeSourceId = user.stripeSourceIds.find(Boolean);
+
+    if (!stripeSourceId) {
+      try {
+        const source: StripeSource = await createSource({email: token.userId});
+        await updateCustomer(user.stripeId, {source: source.id});
+        stripeSourceId = source.id;
+
+        await dataLib.patch('users', token.userId, {
+          stripeSourceIds: [stripeSourceId],
+        });
+      } catch (err) {
+        return createErrorResponse({
+          errors: [err],
+          status: err.statusCode,
+          title: err.message,
+        });
+      }
+    }
+
     const orderTotal = order.lineItems.reduce(
       (acc, lineItem) => acc + lineItem.total,
       0
     );
 
-    // if we this is first payment, patch the current order payment
-    if (paymentStatus === PaymentStatus.FirstPayment) {
-      if (amount.value > orderTotal) {
-        return createErrorResponse({
-          instance: pathname,
-          status: 400,
-          title: `You can't pay more than the total of the order`,
-        });
-      }
+    if (amount.value > orderTotal) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 400,
+        title: `You can't pay more than the total of the order`,
+      });
+    }
 
+    try {
+      await createCharge({
+        amount: amount.value,
+        customer: user.stripeId,
+        source: stripeSourceId,
+      });
+    } catch (err) {
+      return createErrorResponse({
+        errors: [err],
+        status: err.statusCode,
+        title: err.message,
+      });
+    }
+
+    // if this is first payment, patch the current order payment
+    if (paymentStatus === PaymentStatus.FirstPayment) {
       try {
         const orderPaymentData: OrderPayment = {
           entities: [
@@ -241,9 +291,21 @@ const orderPaymentsService: Service<OrderPayment> = {
 
     // if we don't, create a new order-payment with the amount as the first entry
     try {
+      const orderDetails = {
+        ...orderPayment,
+        entities: [
+          ...orderPayment.entities,
+          {
+            amount: amount.value,
+            date: Date.now(),
+          },
+        ],
+      };
+      const result = dataLib.create(BASE_DIR, orderId, orderDetails);
+
       return {
         metadata: {status: 201},
-        payload: {orderId: 'foo', userId: 'foo', entities: []},
+        payload: result,
       };
     } catch (err) {
       return createErrorResponse({
