@@ -1,5 +1,6 @@
 import {debuglog} from 'util';
 
+import {sendEmail} from '../lib/mailgun';
 import {createCharge, createSource, updateCustomer} from '../lib/stripe';
 
 import * as dataLib from '../data';
@@ -50,6 +51,7 @@ const orderPaymentsService: Service<OrderPayment> = {
 
     const [_, orderId] = pathname.split('/').filter(Boolean);
 
+    // ensure there is an existing order for this payment
     try {
       const result = await dataLib.read(BASE_DIR, orderId);
 
@@ -101,9 +103,108 @@ const orderPaymentsService: Service<OrderPayment> = {
     }
 
     const [_, orderId] = pathname.split('/').filter(Boolean);
+    let order: Order;
+
+    // return 404 if no order matches id
+    try {
+      order = await dataLib.read('orders', orderId);
+    } catch (err) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 404,
+        title: 'Not found',
+      });
+    }
+
+    if (token.userId !== order.userId) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 403,
+        title: `You are not allowed to create a payment for this order`,
+      });
+    }
+
+    let user: User;
 
     try {
-      const orderPayment: OrderPayment = await dataLib.read(BASE_DIR, orderId);
+      user = await dataLib.read('users', token.userId);
+    } catch (err) {
+      return createErrorResponse({
+        errors: [err],
+        status: 404,
+        title: `Can't find user`,
+      });
+    }
+
+    let stripeSourceId = user.stripeSourceIds.find(Boolean);
+
+    // create stripe source if none on user
+    if (!stripeSourceId) {
+      try {
+        const source: StripeSource = await createSource({email: token.userId});
+        await updateCustomer(user.stripeId, {source: source.id});
+        stripeSourceId = source.id;
+
+        await dataLib.patch('users', token.userId, {
+          stripeSourceIds: [stripeSourceId],
+        });
+      } catch (err) {
+        return createErrorResponse({
+          errors: [err],
+          status: err.statusCode,
+          title: err.message,
+        });
+      }
+    }
+
+    let orderPayment: OrderPayment;
+
+    try {
+      orderPayment = await dataLib.read(BASE_DIR, orderId);
+    } catch (err) {
+      return createErrorResponse({
+        errors: [err],
+        instance: pathname,
+        status: 404,
+        title: `Can't find order`,
+      });
+    }
+
+    const orderTotal = order.lineItems.reduce(
+      (acc, lineItem) => acc + lineItem.total,
+      0
+    );
+    const paymentsTotal = orderPayment.entities.reduce(
+      (acc, entity) => acc + entity.amount,
+      0
+    );
+
+    if (amount.value > orderTotal) {
+      return createErrorResponse({
+        instance: pathname,
+        status: 400,
+        title: `You can't pay more than the total of the order`,
+      });
+    }
+
+    try {
+      await createCharge({
+        amount: amount.value,
+        customer: user.stripeId,
+        source: stripeSourceId,
+      });
+    } catch (err) {
+      return createErrorResponse({
+        errors: [err],
+        status: err.statusCode,
+        title: err.message,
+      });
+    }
+
+    let result: OrderPayment;
+
+    // get the current payments
+    try {
       const newOrderPayment: OrderPayment = {
         ...orderPayment,
         entities: orderPayment.entities.concat({
@@ -111,19 +212,30 @@ const orderPaymentsService: Service<OrderPayment> = {
           date: Date.now(),
         }),
       };
-      const result: OrderPayment = await dataLib.patch(
-        BASE_DIR,
-        orderId,
-        newOrderPayment
-      );
+
+      result = await dataLib.patch(BASE_DIR, orderId, newOrderPayment);
+    } catch (err) {
+      return createErrorResponse({
+        errors: [err],
+        instance: pathname,
+        status: err.statusCode,
+        title: err.message,
+      });
+    }
+
+    try {
+      await sendEmail({
+        body: JSON.stringify(result),
+        email: process.env.MAILGUN_TEST_EMAIL,
+        subject: 'Successful charge',
+      });
 
       return {metadata: {status: 200}, payload: result};
     } catch (err) {
       return createErrorResponse({
         errors: [err],
-        instance: pathname,
-        status: 404,
-        title: 'Payment not found',
+        status: err.statusCode,
+        title: err.message,
       });
     }
   },
@@ -208,6 +320,7 @@ const orderPaymentsService: Service<OrderPayment> = {
 
     let stripeSourceId = user.stripeSourceIds.find(Boolean);
 
+    // create stripe source if none on user
     if (!stripeSourceId) {
       try {
         const source: StripeSource = await createSource({email: token.userId});
@@ -253,6 +366,8 @@ const orderPaymentsService: Service<OrderPayment> = {
       });
     }
 
+    let result;
+
     // if this is first payment, patch the current order payment
     if (paymentStatus === PaymentStatus.FirstPayment) {
       try {
@@ -273,12 +388,10 @@ const orderPaymentsService: Service<OrderPayment> = {
               ? OrderStatus.Paid
               : OrderStatus.Partial,
         };
-        const [result] = await Promise.all([
+        [result] = await Promise.all([
           dataLib.create(BASE_DIR, orderId, orderPaymentData),
           dataLib.patch('orders', orderId, newOrder),
         ]);
-
-        return {metadata: {status: 201}, payload: result};
       } catch (err) {
         return createErrorResponse({
           errors: [err],
@@ -290,18 +403,34 @@ const orderPaymentsService: Service<OrderPayment> = {
     }
 
     // if we don't, create a new order-payment with the amount as the first entry
+    if (paymentStatus !== PaymentStatus.FirstPayment) {
+      try {
+        const orderDetails = {
+          ...orderPayment,
+          entities: [
+            ...orderPayment.entities,
+            {
+              amount: amount.value,
+              date: Date.now(),
+            },
+          ],
+        };
+        result = dataLib.create(BASE_DIR, orderId, orderDetails);
+      } catch (err) {
+        return createErrorResponse({
+          errors: [err],
+          status: 500,
+          title: err.code,
+        });
+      }
+    }
+
     try {
-      const orderDetails = {
-        ...orderPayment,
-        entities: [
-          ...orderPayment.entities,
-          {
-            amount: amount.value,
-            date: Date.now(),
-          },
-        ],
-      };
-      const result = dataLib.create(BASE_DIR, orderId, orderDetails);
+      await sendEmail({
+        body: JSON.stringify(result),
+        email: process.env.MAILGUN_TEST_EMAIL,
+        subject: 'Successful charge',
+      });
 
       return {
         metadata: {status: 201},
@@ -310,8 +439,8 @@ const orderPaymentsService: Service<OrderPayment> = {
     } catch (err) {
       return createErrorResponse({
         errors: [err],
-        status: 500,
-        title: err.code,
+        status: err.statusCode,
+        title: err.message,
       });
     }
   },
