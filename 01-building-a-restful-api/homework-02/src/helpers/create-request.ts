@@ -1,5 +1,4 @@
 import * as https from 'https';
-import * as querystring from 'querystring';
 
 import {safeJSONParse} from '../helpers';
 
@@ -13,24 +12,10 @@ import {safeJSONParse} from '../helpers';
  * @returns {undefined}
  */
 const createRequest = (
-  options: https.RequestOptions = {},
+  requestOptions: https.RequestOptions = {},
   payload?: any
 ): Promise<any> => {
   // querystring.stringify formats data as required by servers parsing form data
-  const stringifiedPayload = querystring.stringify(payload);
-  const requestOptions = {
-    ...options,
-    headers: {
-      // set the content length of the payload
-      // This helps the receiving server know when the request's data has
-      // finished sending
-      'Content-length': stringifiedPayload
-        ? Buffer.byteLength(stringifiedPayload)
-        : 0,
-      ...options.headers,
-    },
-  };
-
   return new Promise((resolve, reject) => {
     const request = https.request(requestOptions, res => {
       const {statusCode} = res;
@@ -55,7 +40,7 @@ const createRequest = (
       return reject(err);
     });
 
-    request.end(stringifiedPayload);
+    request.end(payload);
   });
 };
 

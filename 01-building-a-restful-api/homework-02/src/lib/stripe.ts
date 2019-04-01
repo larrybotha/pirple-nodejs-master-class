@@ -1,4 +1,5 @@
 import * as https from 'https';
+import * as querystring from 'querystring';
 
 import {config} from '../config';
 import {createRequest} from '../helpers/create-request';
@@ -22,6 +23,24 @@ const baseRequestOptions: https.RequestOptions = {
   hostname: 'api.stripe.com',
   method: 'POST',
   protocol: 'https:',
+};
+
+const createStripeRequest = (options: https.RequestOptions, payload?: any) => {
+  const stringifiedPayload = querystring.stringify(payload);
+  const reqOptions = {
+    ...options,
+    headers: {
+      // set the content length of the payload
+      // This helps the receiving server know when the request's data has
+      // finished sending
+      'Content-length': stringifiedPayload
+        ? Buffer.byteLength(stringifiedPayload)
+        : 0,
+      ...options.headers,
+    },
+  };
+
+  return createRequest(reqOptions, stringifiedPayload);
 };
 
 interface CreateSourceOptions {
@@ -60,7 +79,10 @@ const createSource: CreateSource = async ({email, ...rest}) => {
   };
 
   try {
-    const result: StripeSource = await createRequest(requestOptions, payload);
+    const result: StripeSource = await createStripeRequest(
+      requestOptions,
+      payload
+    );
 
     return result;
   } catch (err) {
@@ -84,7 +106,7 @@ const deleteSource: DeleteSource = async id => {
   };
 
   try {
-    const result = await createRequest(requestOptions);
+    const result = await createStripeRequest(requestOptions);
 
     return result;
   } catch (err) {
@@ -121,7 +143,7 @@ const createCharge: CreateCharge = async options => {
     path: '/v1/charges',
   };
   try {
-    const result = await createRequest(requestOptions, payload);
+    const result = await createStripeRequest(requestOptions, payload);
 
     return result;
   } catch (err) {
@@ -149,7 +171,7 @@ const createCustomer: CreateCustomer = async options => {
     path: '/v1/customers',
   };
   try {
-    const result = await createRequest(requestOptions, payload);
+    const result = await createStripeRequest(requestOptions, payload);
 
     return result;
   } catch (err) {
@@ -178,7 +200,7 @@ const updateCustomer: UpdateCustomer = async (id, options) => {
   };
 
   try {
-    const result = await createRequest(requestOptions, payload);
+    const result = await createStripeRequest(requestOptions, payload);
 
     return result;
   } catch (err) {
@@ -204,7 +226,7 @@ const deleteCustomer: DeleteCustomer = async id => {
   };
 
   try {
-    const result = await createRequest(requestOptions);
+    const result = await createStripeRequest(requestOptions);
 
     return result;
   } catch (err) {
