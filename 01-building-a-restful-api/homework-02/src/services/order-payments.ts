@@ -352,6 +352,7 @@ const orderPaymentsService: Service<OrderPayment> = {
       });
     }
 
+    // create a charte in stripe
     try {
       await createCharge({
         amount: amount.value,
@@ -402,7 +403,8 @@ const orderPaymentsService: Service<OrderPayment> = {
       }
     }
 
-    // if we don't, create a new order-payment with the amount as the first entry
+    // if we don't have an existing payment,
+    // create a new order-payment with the amount as the first entry
     if (paymentStatus !== PaymentStatus.FirstPayment) {
       try {
         const orderDetails = {
@@ -425,6 +427,7 @@ const orderPaymentsService: Service<OrderPayment> = {
       }
     }
 
+    // send the email, and return the payload
     try {
       await sendEmail({
         body: JSON.stringify(result),
