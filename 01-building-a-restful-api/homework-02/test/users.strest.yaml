@@ -100,10 +100,10 @@ requests:
       method: GET
       headers:
         - name: Authorization
-          value: hmac foo@test.com:<$ tokens_create.content.id $>
+          value: "hmac <$ Faker('internet.email') $>:<$ tokens_create.content.id $>"
     validate:
       - jsonpath: status
-        expect: 401
+        expect: 403
 
   users_delete_with_invalid_token:
     request:
@@ -111,10 +111,10 @@ requests:
       method: DELETE
       headers:
         - name: Authorization
-          value: hmac foo@test.com:<$ tokens_create.content.id $>
+          value: "hmac <$ Faker('internet.email') $>:<$ tokens_create.content.id $>"
     validate:
       - jsonpath: status
-        expect: 401
+        expect: 403
   # end invalid token requests
 
   # start unauthorized requests
