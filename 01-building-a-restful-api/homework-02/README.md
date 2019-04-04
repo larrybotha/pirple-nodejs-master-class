@@ -47,3 +47,14 @@ npx strest test
       }
     }
     ```
+- to send data using Basic authentication:
+
+    ```javascript
+    const requestOptions = {
+      ...options,
+      headers: {
+        ...
+        Authorization: `Basic ${Buffer.from('username:password').toString('base64')}`,
+      }
+    }
+    ```
