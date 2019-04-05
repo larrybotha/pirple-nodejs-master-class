@@ -1,0 +1,171 @@
+version: 2
+
+variables:
+  endpoint: users
+  password: 'password'
+  name: 'foo'
+  address: 'bar'
+  schemaValidate:
+    properties:
+      address:
+        type: [string]
+      email:
+        type: [string]
+      name:
+        type: [string]
+      id:
+        types: [string]
+      stripeId:
+        types: [string]
+      stripeSourceIds:
+        types: [array]
+        items:
+          type: [string]
+    required:
+      - email
+      - id
+      - name
+      - address
+      - stripeId
+      - stripeSourceIds
+    additionalProperties: false
+
+requests:
+  users_create:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: '<$ Faker("internet.email") $>'
+          password: '<$ password $>'
+    validate:
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
+
+  users_token_create:
+    request:
+      url: <$ globalBaseUrl $>/tokens
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ users_create.content.email $>
+          password: <$ password $>
+
+  users_get:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      method: GET
+      headers:
+        - name: Authorization
+          value: hmac <$ users_create.content.email $>:<$ users_token_create.content.id $>
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
+
+  users_patch:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      method: PATCH
+      postData:
+        mimeType: 'application/json'
+        text:
+          name: <$ name $>
+          address: <$ address $>
+      headers:
+        - name: Authorization
+          value: hmac <$ users_create.content.email $>:<$ users_token_create.content.id $>
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: content.name
+        expect: '<$ name $>'
+      - jsonpath: content.address
+        expect: '<$ address $>'
+
+  # start invalid token requests
+  users_get_with_invalid_token:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
+      method: GET
+      headers:
+        - name: Authorization
+          value: "hmac <$ Faker('internet.email') $>:<$ tokens_create.content.id $>"
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  users_delete_with_invalid_token:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: "hmac <$ Faker('internet.email') $>:<$ tokens_create.content.id $>"
+    validate:
+      - jsonpath: status
+        expect: 403
+  # end invalid token requests
+
+  # start unauthorized requests
+  users_get_unauthorized:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  users_delete_unauthorized:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 401
+  # end unauthorized requests
+
+  users_delete:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      method: DELETE
+      headers:
+        - name: Authorization
+          value: hmac <$ users_create.content.email $>:<$ users_token_create.content.id $>
+    validate:
+      - jsonpath: status
+        expect: 200
+
+  users_create_missing_email:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          password: <$ password $>
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  users_create_missing_password:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ users_create.content.email $>
+    validate:
+      - jsonpath: status
+        expect: 400

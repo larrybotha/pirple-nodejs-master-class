@@ -1,0 +1,4 @@
+version: 2
+
+variables:
+  globalBaseUrl: http://localhost:3000

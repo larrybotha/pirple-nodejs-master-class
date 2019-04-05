@@ -1,0 +1,137 @@
+version: 2
+
+variables:
+  endpoint: /tokens
+  password: 'password'
+  schemaValidate:
+    properties:
+      id:
+        type: string
+      expires:
+        type: number
+      userId:
+        type: string
+    required:
+      - id
+      - expires
+      - userId
+
+requests:
+  # setup
+  tokens_user_create:
+    request:
+      url: <$ globalBaseUrl $>/users
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ Faker("internet.email") $>
+          password: <$ password $>
+  # end setup
+
+  # success responses
+  tokens_create:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ tokens_user_create.content.email $>
+          password: <$ password $>
+    validate:
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: content.userId
+        expect: <$ tokens_user_create.content.email $>
+
+  tokens_get:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>/<$ tokens_create.content.id $>
+      method: GET
+      headers:
+        - name: Authorization
+          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: content.userId
+        expect: <$ tokens_user_create.content.email $>
+
+  tokens_patch:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>/<$ tokens_create.content.id $>
+      method: PATCH
+      headers:
+        - name: Authorization
+          value: hmac <$ tokens_user_create.content.email $>:<$ tokens_create.content.id $>
+      postData:
+        mimeType: 'application/json'
+        text:
+          extend: true
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
+
+  # missing auth headers
+  tokens_create_missing_email:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          password: <$ password $>
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  tokens_create_missing_password:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: <$ tokens_user_create.content.email $>
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  tokens_get_missing_auth_header:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>/<$ tokens_create.content.id $>
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  tokens_patch_missing_auth_header:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: PATCH
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  tokens_delete_missing_auth_header:
+    request:
+      url: <$ globalBaseUrl $><$ endpoint $>
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  # start cleanup
+  tokens_user_delete:
+    request:
+      url: <$ globalBaseUrl $>/users/<$ tokens_user_create.content.email $>
+      method: DELETE
+  # end cleanup
