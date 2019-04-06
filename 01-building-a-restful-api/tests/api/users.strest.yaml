@@ -3,34 +3,51 @@ version: 2
 variables:
   endpoint: users
   password: 'password'
-  name: 'foo'
-  address: 'bar'
   schemaValidate:
     properties:
-      address:
+      phone:
         type: [string]
-      email:
+      firstName:
         type: [string]
-      name:
+      lastName:
         type: [string]
-      id:
-        types: [string]
-      stripeId:
-        types: [string]
-      stripeSourceIds:
-        types: [array]
-        items:
-          type: [string]
     required:
-      - email
-      - id
-      - name
-      - address
-      - stripeId
-      - stripeSourceIds
+      - phone
+      - firstName
+      - lastName
     additionalProperties: false
 
 requests:
+  # start setup
+  users_other_create:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          firstName: '<$ Faker("name.firstName") $>'
+          lastName: '<$ Faker("name.lastName") $>'
+          password: '<$ password $>'
+          phone: '<$ Faker("phone.phoneNumberFormat") $>'
+          tosAgreement: 'true'
+    validate:
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
+
+  users_token_other_create:
+    request:
+      url: <$ globalBaseUrl $>/tokens
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          phone: '<$ users_other_create.content.phone $>'
+          password: '<$ password $>'
+
   users_create:
     request:
       url: '<$ globalBaseUrl $>/<$ endpoint $>'
@@ -38,8 +55,11 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          email: '<$ Faker("internet.email") $>'
+          firstName: '<$ Faker("name.firstName") $>'
+          lastName: '<$ Faker("name.lastName") $>'
           password: '<$ password $>'
+          phone: '<$ Faker("phone.phoneNumberFormat") $>'
+          tosAgreement: 'true'
     validate:
       - jsonpath: status
         expect: 201
@@ -54,16 +74,149 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          email: <$ users_create.content.email $>
-          password: <$ password $>
+          phone: '<$ users_create.content.phone $>'
+          password: '<$ password $>'
+  # end setup
+
+  # start unauthorized requests
+  users_get_unauthorized:
+    request:
+      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      method: GET
+      headers:
+        - name: phone
+          value: '<$ users_other_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_other_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  users_put_unauthorized:
+    request:
+      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      method: PUT
+      headers:
+        - name: phone
+          value: '<$ users_other_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_other_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+          firstName: 'foo'
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  users_patch_unauthorized:
+    request:
+      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      method: PATCH
+      headers:
+        - name: phone
+          value: '<$ users_other_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_other_create.content.id $>'
+      postData:
+        mimeType: 'application/json'
+        text:
+          firstName: 'foo'
+    validate:
+      - jsonpath: status
+        expect: 403
+
+  users_delete_unauthorized:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
+      method: DELETE
+      headers:
+        - name: phone
+          value: '<$ users_other_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_other_create.content.id $>'
+    validate:
+      - jsonpath: status
+        expect: 403
+  # end unauthorized requests
+
+  # start unauthenticated requests
+  users_get_unauthenticated:
+    request:
+      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  users_put_unauthenticated:
+    request:
+      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      method: PUT
+      postData:
+        mimeType: 'application/json'
+        text:
+          firstName: 'foo'
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  users_patch_unauthenticated:
+    request:
+      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      method: PATCH
+      postData:
+        mimeType: 'application/json'
+        text:
+          firstName: 'foo'
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  users_delete_unauthenticated:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 401
+  # end unauthenticated requests
+
+  # start invalid params requests
+  users_create_missing_email:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          password: '<$ password $>'
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  users_create_missing_password:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          email: '<$ users_create.content.phone $>'
+    validate:
+      - jsonpath: status
+        expect: 400
+  # end invalid params requests
 
   users_get:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
       method: GET
       headers:
-        - name: Authorization
-          value: hmac <$ users_create.content.email $>:<$ users_token_create.content.id $>
+        - name: phone
+          value: '<$ users_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_create.content.id $>'
     validate:
       - jsonpath: status
         expect: 200
@@ -73,99 +226,67 @@ requests:
 
   users_patch:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
       method: PATCH
+      headers:
+        - name: phone
+          value: '<$ users_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_create.content.id $>'
       postData:
         mimeType: 'application/json'
         text:
-          name: <$ name $>
-          address: <$ address $>
-      headers:
-        - name: Authorization
-          value: hmac <$ users_create.content.email $>:<$ users_token_create.content.id $>
+          firstName: 'foo'
     validate:
       - jsonpath: status
         expect: 200
+      - jsonpath: content.firstName
+        expect: 'foo'
       - jsonpath: content
         jsonschema: <$ schemaValidate | dump | safe $>
-      - jsonpath: content.name
-        expect: '<$ name $>'
-      - jsonpath: content.address
-        expect: '<$ address $>'
-
-  # start invalid token requests
-  users_get_with_invalid_token:
-    request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
-      method: GET
-      headers:
-        - name: Authorization
-          value: "hmac <$ Faker('internet.email') $>:<$ tokens_create.content.id $>"
-    validate:
-      - jsonpath: status
-        expect: 403
-
-  users_delete_with_invalid_token:
-    request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
-      method: DELETE
-      headers:
-        - name: Authorization
-          value: "hmac <$ Faker('internet.email') $>:<$ tokens_create.content.id $>"
-    validate:
-      - jsonpath: status
-        expect: 403
-  # end invalid token requests
-
-  # start unauthorized requests
-  users_get_unauthorized:
-    request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/foo@test.com
-      method: GET
-    validate:
-      - jsonpath: status
-        expect: 401
-
-  users_delete_unauthorized:
-    request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
-      method: DELETE
-    validate:
-      - jsonpath: status
-        expect: 401
-  # end unauthorized requests
+    # log: true
 
   users_delete:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.email $>
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
       method: DELETE
       headers:
-        - name: Authorization
-          value: hmac <$ users_create.content.email $>:<$ users_token_create.content.id $>
+        - name: phone
+          value: '<$ users_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_create.content.id $>'
     validate:
       - jsonpath: status
         expect: 200
 
-  users_create_missing_email:
+  # start clean up
+  users_delete_other:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>
-      method: POST
-      postData:
-        mimeType: 'application/json'
-        text:
-          password: <$ password $>
-    validate:
-      - jsonpath: status
-        expect: 400
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_other_create.content.phone $>'
+      method: DELETE
+      headers:
+        - name: phone
+          value: '<$ users_other_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_other_create.content.id $>'
 
-  users_create_missing_password:
+  user_token_delete:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>
-      method: POST
-      postData:
-        mimeType: 'application/json'
-        text:
-          email: <$ users_create.content.email $>
-    validate:
-      - jsonpath: status
-        expect: 400
+      url: '<$ globalBaseUrl $>/tokens/<$ users_token_create.content.id $>'
+      method: DELETE
+      headers:
+        - name: phone
+          value: '<$ users_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_create.content.id $>'
+
+  user_token_delete_other:
+    request:
+      url: '<$ globalBaseUrl $>/tokens/<$ users_token_other_create.content.id $>'
+      method: DELETE
+      headers:
+        - name: phone
+          value: '<$ users_other_create.content.phone $>'
+        - name: token
+          value: '<$ users_token_other_create.content.id $>'
+  # end clean up
