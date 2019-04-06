@@ -1,0 +1,153 @@
+version: 2
+
+variables:
+  endpoint: checks
+  schemaValidate:
+    properties:
+      id:
+        type: string
+      expires:
+        type: number
+      phone:
+        type: string
+    required:
+      - id
+      - expires
+      - phone
+
+requests:
+  # setup
+  checks_user_create:
+    request:
+      url: '<$ globalBaseUrl $>/users'
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          phone: '<$ Faker("phone.phoneNumberFormat") $>'
+          password: 'password'
+          firstName: '<$ Faker("name.firstName") $>'
+          lastName: '<$ Faker("name.lastName") $>'
+          tosAgreement: 'true'
+
+  checks_token_create:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          phone: '<$ checks_user_create.content.phone $>'
+          password: password
+  # end setup
+
+  # success responses
+  checks_create:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          phone: <$ checks_user_create.content.phone $>
+          password: <$ password $>
+    validate:
+      - jsonpath: status
+        expect: 201
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: content.phone
+        expect: <$ checks_user_create.content.phone $>
+
+  checks_get:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_token_create.content.id $>'
+      method: GET
+      headers:
+        - name: phone
+          value: <$ checks_user_create.content.phone $>
+        - name: token
+          value: <$ checks_token_create.content.id $>
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: content.phone
+        expect: <$ checks_user_create.content.phone $>
+
+  checks_put:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_token_create.content.id $>'
+      method: PUT
+      headers:
+        - name: phone
+          value: <$ checks_user_create.content.phone $>
+        - name: token
+          value: <$ checks_token_create.content.id $>
+      postData:
+        mimeType: 'application/json'
+        text:
+          extend: 'true'
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: content
+        jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
+
+  # missing auth headers
+  checks_create_missing_phone:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          password: '<$ password $>'
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  checks_create_missing_password:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      method: POST
+      postData:
+        mimeType: 'application/json'
+        text:
+          phone: '<$ checks_user_create.content.phone $>'
+    validate:
+      - jsonpath: status
+        expect: 400
+
+  checks_get_missing_auth_header:
+    request:
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_token_create.content.id $>'
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  checks_put_missing_auth_header:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
+      method: PUT
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  checks_delete_missing_auth_header:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  # start cleanup
+  checks_user_delete:
+    request:
+      url: '<$ globalBaseUrl $>/users/<$ checks_user_create.content.phone $>/'
+      method: DELETE
+  # end cleanup
