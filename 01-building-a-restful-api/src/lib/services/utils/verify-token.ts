@@ -1,11 +1,13 @@
 import * as http from 'http';
 
 import dataLib from '../../data';
+import {Token} from '../../types/services/tokens';
 
 // verify if a given token id is valid for the current user
 interface TokenValidation {
   code?: number;
   msg?: string;
+  token?: Token;
   verified: boolean;
 }
 type VerifyToken = (
@@ -29,7 +31,7 @@ const verifyToken: VerifyToken = async headers => {
       phone === tokenData.phone
         ? {verified: true}
         : {
-            code: 401,
+            code: 403,
             msg: 'invalid token',
             verified: false,
           };
@@ -42,9 +44,9 @@ const verifyToken: VerifyToken = async headers => {
       ({verified}) => !Boolean(verified)
     );
 
-    return invalidation ? invalidation : {verified: true};
+    return invalidation ? invalidation : {token: tokenData, verified: true};
   } catch (err) {
-    return {verified: false, msg: err, code: 500};
+    return {verified: false, msg: err, code: 403};
   }
 };
 
