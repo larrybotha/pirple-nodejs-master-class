@@ -12,6 +12,7 @@ import {
   validatePhone,
   validateTos,
 } from './validations/users';
+import {verifyToken} from './utils/verify-token';
 
 interface UserMethods {
   delete: Handler;
@@ -23,8 +24,18 @@ interface UserMethods {
 }
 
 const userMethods: UserMethods = {
-  delete: async ({pathname}, cb) => {
+  delete: async ({headers, pathname}, cb) => {
+    const {code, msg, token, verified} = await verifyToken(headers);
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
     const [_, phone] = pathname.split('/');
+
+    if (token.phone !== phone) {
+      return cb(403, {error: 'Not authorised'});
+    }
 
     try {
       const userData: User = await dataLib.read('users', phone);
@@ -49,8 +60,18 @@ const userMethods: UserMethods = {
     }
   },
 
-  get: async ({pathname}, cb) => {
+  get: async ({headers, pathname}, cb) => {
+    const {code, msg, token, verified} = await verifyToken(headers);
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
     const [_, phone] = pathname.split('/');
+
+    if (token.phone !== phone) {
+      return cb(403, {error: 'Not authorised'});
+    }
 
     try {
       const data = await dataLib.read('users', phone);
@@ -127,8 +148,18 @@ const userMethods: UserMethods = {
     }
   },
 
-  patch: async ({pathname, payload}, cb) => {
+  patch: async ({headers, pathname, payload}, cb) => {
+    const {code, msg, token, verified} = await verifyToken(headers);
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
     const [_, phone] = pathname.split('/');
+
+    if (token.phone !== phone) {
+      return cb(403, {error: 'Not authorised'});
+    }
 
     try {
       await dataLib.read('users', phone);
@@ -157,8 +188,19 @@ const userMethods: UserMethods = {
     }
   },
 
-  put: async ({pathname, payload}, cb) => {
+  put: async ({headers, pathname, payload}, cb) => {
+    const {code, msg, token, verified} = await verifyToken(headers);
+
+    if (!verified) {
+      return cb(code, {error: msg});
+    }
+
     const [_, phone] = pathname.split('/');
+
+    if (token.phone !== phone) {
+      return cb(403, {error: 'Not authorised'});
+    }
+
     const permittedFields = ['firstName', 'lastName', 'phone'];
 
     try {
