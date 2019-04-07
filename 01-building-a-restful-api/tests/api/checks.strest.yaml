@@ -25,14 +25,14 @@ requests:
         mimeType: 'application/json'
         text:
           phone: '<$ Faker("phone.phoneNumberFormat") $>'
-          password: 'password'
+          password: password
           firstName: '<$ Faker("name.firstName") $>'
           lastName: '<$ Faker("name.lastName") $>'
           tosAgreement: 'true'
 
   checks_token_create:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ globalBaseUrl $>/tokens'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -41,11 +41,50 @@ requests:
           password: password
   # end setup
 
+  # start unauthenticated requests
+  checks_get_unauthenticated:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  checks_post_unauthenticated:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>
+      method: POST
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  checks_put_unauthenticated:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/foo
+      method: PUT
+    validate:
+      - jsonpath: status
+        expect: 401
+
+  checks_delete_unauthenticated:
+    request:
+      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ checks_user_create.content.phone $>
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 401
+  # end unauthenticated requests
+
   # success responses
   checks_create:
     request:
       url: '<$ globalBaseUrl $>/<$ endpoint $>'
       method: POST
+      headers:
+        - name: phone
+          value: '<$ checks_user_create.content.phone $>'
+        - name: token
+          value: '<$ checks_token_create.content.id $>'
       postData:
         mimeType: 'application/json'
         text:
@@ -96,7 +135,7 @@ requests:
         jsonschema: <$ schemaValidate | dump | safe $>
     # log: true
 
-  # missing auth headers
+  # start bad requests
   checks_create_missing_phone:
     request:
       url: '<$ globalBaseUrl $>/<$ endpoint $>'
@@ -120,30 +159,7 @@ requests:
     validate:
       - jsonpath: status
         expect: 400
-
-  checks_get_missing_auth_header:
-    request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_token_create.content.id $>'
-      method: GET
-    validate:
-      - jsonpath: status
-        expect: 401
-
-  checks_put_missing_auth_header:
-    request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>
-      method: PUT
-    validate:
-      - jsonpath: status
-        expect: 401
-
-  checks_delete_missing_auth_header:
-    request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>
-      method: DELETE
-    validate:
-      - jsonpath: status
-        expect: 401
+  # end bad requests
 
   # start cleanup
   checks_user_delete:
