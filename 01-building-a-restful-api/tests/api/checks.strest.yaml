@@ -6,14 +6,23 @@ variables:
     properties:
       id:
         type: string
-      expires:
-        type: number
-      phone:
+      method:
         type: string
+      protocol:
+        type: string
+      url:
+        type: string
+      timeoutSeconds:
+        type: number
+      successCodes:
+        type: array
     required:
       - id
-      - expires
-      - phone
+      - method
+      - protocol
+      - url
+      - timeoutSeconds
+      - successCodes
 
 requests:
   # setup
@@ -88,19 +97,20 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          phone: <$ checks_user_create.content.phone $>
-          password: <$ password $>
+          protocol: 'https'
+          url: 'google.com'
+          method: 'get'
+          successCodes: [200]
+          timeoutSeconds: 5
     validate:
       - jsonpath: status
         expect: 201
       - jsonpath: content
         jsonschema: <$ schemaValidate | dump | safe $>
-      - jsonpath: content.phone
-        expect: <$ checks_user_create.content.phone $>
 
   checks_get:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_token_create.content.id $>'
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_create.content.id $>'
       method: GET
       headers:
         - name: phone
@@ -112,12 +122,10 @@ requests:
         expect: 200
       - jsonpath: content
         jsonschema: <$ schemaValidate | dump | safe $>
-      - jsonpath: content.phone
-        expect: <$ checks_user_create.content.phone $>
 
   checks_put:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_token_create.content.id $>'
+      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_create.content.id $>'
       method: PUT
       headers:
         - name: phone
@@ -127,35 +135,28 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          extend: 'true'
+          protocol: 'https'
+          url: 'bing.com'
+          method: 'get'
+          successCodes: [200]
+          timeoutSeconds: 4
     validate:
       - jsonpath: status
         expect: 200
-      - jsonpath: content
-        jsonschema: <$ schemaValidate | dump | safe $>
+      - jsonpath: content.timeoutSeconds
+        expect: 4
     # log: true
 
   # start bad requests
-  checks_create_missing_phone:
+  checks_create_missing_parameters:
     request:
       url: '<$ globalBaseUrl $>/<$ endpoint $>'
       method: POST
-      postData:
-        mimeType: 'application/json'
-        text:
-          password: '<$ password $>'
-    validate:
-      - jsonpath: status
-        expect: 400
-
-  checks_create_missing_password:
-    request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
-      method: POST
-      postData:
-        mimeType: 'application/json'
-        text:
-          phone: '<$ checks_user_create.content.phone $>'
+      headers:
+        - name: phone
+          value: <$ checks_user_create.content.phone $>
+        - name: token
+          value: <$ checks_token_create.content.id $>
     validate:
       - jsonpath: status
         expect: 400
