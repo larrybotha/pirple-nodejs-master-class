@@ -24,6 +24,14 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
   const {pathname, query} = parsedUrl;
   const trimmedPath = pathname.replace(/^\/+|\/$/g, '');
   const method = req.method.toLowerCase();
+  const serviceName = Object.keys(router).find(name => {
+    const serviceParts = name.split('/');
+    const pathParts = trimmedPath.split('/');
+
+    return serviceParts.every(
+      (part, i) => /^:/.test(part) || part === pathParts[i]
+    );
+  });
   const decoder = new StringDecoder('utf8');
   let buffer = '';
 
@@ -35,8 +43,7 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
     // make sure to write any data coming through in the `end` event to our buffer
     buffer += decoder.end();
 
-    const handler: Handler =
-      router[trimmedPath.split('/').find(Boolean)] || router.notFound;
+    const handler: Handler = router[serviceName] || router.notFound;
 
     const data = {
       headers,

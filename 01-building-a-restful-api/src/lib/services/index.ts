@@ -5,11 +5,11 @@ import {tokens} from './tokens';
 import {users} from './users';
 
 const services = {
-  checks,
+  'api/checks/:id': checks,
+  'api/tokens/:id': tokens,
+  'api/users/:phone': users,
   notFound,
   ping,
-  tokens,
-  users,
 };
 
 export default services;
