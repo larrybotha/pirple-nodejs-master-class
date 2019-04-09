@@ -1,6 +1,8 @@
+---
 version: 2
 
 variables:
+  baseUrl: http://localhost:3000/api
   endpoint: checks
   schemaValidate:
     properties:
@@ -28,7 +30,7 @@ requests:
   # setup
   checks_user_create:
     request:
-      url: '<$ globalBaseUrl $>/users'
+      url: '<$ baseUrl $>/users'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -38,10 +40,11 @@ requests:
           firstName: '<$ Faker("name.firstName") $>'
           lastName: '<$ Faker("name.lastName") $>'
           tosAgreement: 'true'
+    log: true
 
   checks_token_create:
     request:
-      url: '<$ globalBaseUrl $>/tokens'
+      url: '<$ baseUrl $>/tokens'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -53,7 +56,7 @@ requests:
   # start unauthenticated requests
   checks_get_unauthenticated:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/foo
+      url: <$ baseUrl $>/<$ endpoint $>/foo
       method: GET
     validate:
       - jsonpath: status
@@ -61,7 +64,7 @@ requests:
 
   checks_post_unauthenticated:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>
+      url: <$ baseUrl $>/<$ endpoint $>
       method: POST
     validate:
       - jsonpath: status
@@ -69,7 +72,7 @@ requests:
 
   checks_put_unauthenticated:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/foo
+      url: <$ baseUrl $>/<$ endpoint $>/foo
       method: PUT
     validate:
       - jsonpath: status
@@ -77,7 +80,7 @@ requests:
 
   checks_delete_unauthenticated:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>/<$ checks_user_create.content.phone $>
+      url: <$ baseUrl $>/<$ endpoint $>/<$ checks_user_create.content.phone $>
       method: DELETE
     validate:
       - jsonpath: status
@@ -87,7 +90,7 @@ requests:
   # success responses
   checks_create:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ baseUrl $>/<$ endpoint $>'
       method: POST
       headers:
         - name: phone
@@ -110,7 +113,7 @@ requests:
 
   checks_get:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_create.content.id $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ checks_create.content.id $>'
       method: GET
       headers:
         - name: phone
@@ -125,7 +128,7 @@ requests:
 
   checks_put:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ checks_create.content.id $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ checks_create.content.id $>'
       method: PUT
       headers:
         - name: phone
@@ -150,7 +153,7 @@ requests:
   # start bad requests
   checks_create_missing_parameters:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ baseUrl $>/<$ endpoint $>'
       method: POST
       headers:
         - name: phone
@@ -165,6 +168,6 @@ requests:
   # start cleanup
   checks_user_delete:
     request:
-      url: '<$ globalBaseUrl $>/users/<$ checks_user_create.content.phone $>/'
+      url: '<$ baseUrl $>/users/<$ checks_user_create.content.phone $>/'
       method: DELETE
   # end cleanup

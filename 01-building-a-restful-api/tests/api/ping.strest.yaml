@@ -2,12 +2,13 @@
 version: 2
 
 variables:
-  endpoint: /ping
+  baseUrl: http://localhost:3000
+  endpoint: ping
 
 requests:
   ping_responds_to_get:
     request:
-      url: <$ globalBaseUrl $><$ endpoint $>
+      url: <$ baseUrl $>/<$ endpoint $>
       method: GET
     validate:
       - jsonpath: status
@@ -17,7 +18,7 @@ requests:
 
   ping_forbids_post:
     request:
-      url: <$ baseUrl $><$ endpoint $>
+      url: <$ baseUrl $>/<$ endpoint $>
       method: POST
     validate:
       - jsonpath: status
@@ -25,7 +26,7 @@ requests:
 
   ping_forbids_put:
     request:
-      url: <$ baseUrl $><$ endpoint $>
+      url: <$ baseUrl $>/<$ endpoint $>
       method: PUT
     validate:
       - jsonpath: status
@@ -33,7 +34,7 @@ requests:
 
   ping_forbids_delete:
     request:
-      url: <$ baseUrl $><$ endpoint $>
+      url: <$ baseUrl $>/<$ endpoint $>
       method: DELETE
     validate:
       - jsonpath: status
