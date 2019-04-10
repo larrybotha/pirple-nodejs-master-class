@@ -23,6 +23,12 @@ interface UserMethods {
   [key: string]: any;
 }
 
+const getPhoneFromPath = (path: string): string => {
+  const parts = path.split('/');
+
+  return parts.length === 3 ? parts.slice(-1).find(Boolean) : '';
+};
+
 const userMethods: UserMethods = {
   delete: async ({headers, pathname}, cb) => {
     const {code, msg, token, verified} = await verifyToken(headers);
@@ -31,7 +37,7 @@ const userMethods: UserMethods = {
       return cb(code, {error: msg});
     }
 
-    const [_, phone] = pathname.split('/');
+    const phone = getPhoneFromPath(pathname);
 
     if (token.phone !== phone) {
       return cb(403, {error: 'Not authorised'});
@@ -67,7 +73,7 @@ const userMethods: UserMethods = {
       return cb(code, {error: msg});
     }
 
-    const [_, phone] = pathname.split('/');
+    const phone = getPhoneFromPath(pathname);
 
     if (token.phone !== phone) {
       return cb(403, {error: 'Not authorised'});
@@ -155,7 +161,7 @@ const userMethods: UserMethods = {
       return cb(code, {error: msg});
     }
 
-    const [_, phone] = pathname.split('/');
+    const phone = getPhoneFromPath(pathname);
 
     if (token.phone !== phone) {
       return cb(403, {error: 'Not authorised'});
@@ -195,7 +201,7 @@ const userMethods: UserMethods = {
       return cb(code, {error: msg});
     }
 
-    const [_, phone] = pathname.split('/');
+    const phone = getPhoneFromPath(pathname);
 
     if (token.phone !== phone) {
       return cb(403, {error: 'Not authorised'});

@@ -1,6 +1,8 @@
+---
 version: 2
 
 variables:
+  baseUrl: http://localhost:3000/api
   endpoint: tokens
   password: 'password'
   schemaValidate:
@@ -20,7 +22,7 @@ requests:
   # setup
   tokens_user_create:
     request:
-      url: '<$ globalBaseUrl $>/users'
+      url: '<$ baseUrl $>/users'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -35,7 +37,7 @@ requests:
   # success responses
   tokens_create:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ baseUrl $>/<$ endpoint $>'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -52,7 +54,7 @@ requests:
 
   tokens_get:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ tokens_create.content.id $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ tokens_create.content.id $>'
       method: GET
       headers:
         - name: phone
@@ -69,7 +71,7 @@ requests:
 
   tokens_put:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ tokens_create.content.id $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ tokens_create.content.id $>'
       method: PUT
       headers:
         - name: phone
@@ -90,7 +92,7 @@ requests:
   # missing auth headers
   tokens_create_missing_phone:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ baseUrl $>/<$ endpoint $>'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -102,7 +104,7 @@ requests:
 
   tokens_create_missing_password:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ baseUrl $>/<$ endpoint $>'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -114,7 +116,7 @@ requests:
 
   tokens_get_missing_auth_header:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ tokens_create.content.id $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ tokens_create.content.id $>'
       method: GET
     validate:
       - jsonpath: status
@@ -122,7 +124,7 @@ requests:
 
   tokens_put_missing_auth_header:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>
+      url: <$ baseUrl $>/<$ endpoint $>
       method: PUT
     validate:
       - jsonpath: status
@@ -130,7 +132,7 @@ requests:
 
   tokens_delete_missing_auth_header:
     request:
-      url: <$ globalBaseUrl $>/<$ endpoint $>
+      url: <$ baseUrl $>/<$ endpoint $>
       method: DELETE
     validate:
       - jsonpath: status
@@ -139,6 +141,6 @@ requests:
   # start cleanup
   tokens_user_delete:
     request:
-      url: '<$ globalBaseUrl $>/users/<$ tokens_user_create.content.phone $>/'
+      url: '<$ baseUrl $>/users/<$ tokens_user_create.content.phone $>/'
       method: DELETE
   # end cleanup

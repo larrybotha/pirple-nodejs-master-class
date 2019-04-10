@@ -36,6 +36,12 @@ interface ChecksMethods {
   [key: string]: any;
 }
 
+const getCheckIdFromPath = (path: string): string => {
+  const parts = path.split('/');
+
+  return parts.length === 3 ? parts.slice(-1).find(Boolean) : '';
+};
+
 const checksMethods: ChecksMethods = {
   delete: async ({headers, pathname}, cb) => {
     const {code, msg, verified} = await verifyToken(headers);
@@ -44,7 +50,7 @@ const checksMethods: ChecksMethods = {
       return cb(code, {error: msg});
     }
 
-    const [_, checkId] = pathname.split('/');
+    const checkId = getCheckIdFromPath(pathname);
 
     try {
       const phone =
@@ -77,7 +83,7 @@ const checksMethods: ChecksMethods = {
       return cb(code, {error: msg});
     }
 
-    const [_, checkId] = pathname.split('/');
+    const checkId = getCheckIdFromPath(pathname);
 
     if (checkId) {
       try {
@@ -200,7 +206,7 @@ const checksMethods: ChecksMethods = {
 
     if (!invalidFields.length) {
       try {
-        const [_, checkId] = pathname.split('/');
+        const checkId = getCheckIdFromPath(pathname);
         const checkData = await dataLib.read('checks', checkId);
         const newData = {
           ...checkData,

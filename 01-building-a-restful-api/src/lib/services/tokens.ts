@@ -33,6 +33,12 @@ interface TokenMethods {
   [key: string]: any;
 }
 
+const getTokenIdFromPath = (path: string): string => {
+  const parts = path.split('/');
+
+  return parts.length === 3 ? parts.slice(-1).find(Boolean) : '';
+};
+
 const tokenMethods: {[key: string]: Handler} = {
   /*
    * required: id
@@ -47,7 +53,7 @@ const tokenMethods: {[key: string]: Handler} = {
       return cb(code, {error: msg});
     }
 
-    const [, tokenId] = pathname.split('/');
+    const tokenId = getTokenIdFromPath(pathname);
     const id = [tokenId].map(exists('id is required')).find(Boolean);
     const invalidFields = [id].filter(
       field => Boolean(field) && Boolean(field.error)
@@ -80,7 +86,7 @@ const tokenMethods: {[key: string]: Handler} = {
       return cb(code, {error: msg});
     }
 
-    const [_, token] = pathname.split('/');
+    const token = getTokenIdFromPath(pathname);
 
     if (!token) {
       return cb(400, {error: 'missing required token parameter'});
@@ -168,7 +174,7 @@ const tokenMethods: {[key: string]: Handler} = {
       return cb(code, {error: msg});
     }
 
-    const [_, tokenId] = pathname.split('/');
+    const tokenId = getTokenIdFromPath(pathname);
 
     const extend = [payload.extend]
       .map(exists('extend is required'))

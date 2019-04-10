@@ -1,6 +1,8 @@
+---
 version: 2
 
 variables:
+  baseUrl: http://localhost:3000/api
   endpoint: users
   password: 'password'
   schemaValidate:
@@ -21,7 +23,7 @@ requests:
   # start setup
   users_other_create:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ baseUrl $>/<$ endpoint $>'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -40,7 +42,7 @@ requests:
 
   users_token_other_create:
     request:
-      url: <$ globalBaseUrl $>/tokens
+      url: <$ baseUrl $>/tokens
       method: POST
       postData:
         mimeType: 'application/json'
@@ -50,7 +52,7 @@ requests:
 
   users_create:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ baseUrl $>/<$ endpoint $>'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -69,7 +71,7 @@ requests:
 
   users_token_create:
     request:
-      url: <$ globalBaseUrl $>/tokens
+      url: <$ baseUrl $>/tokens
       method: POST
       postData:
         mimeType: 'application/json'
@@ -81,7 +83,7 @@ requests:
   # start unauthorized requests
   users_get_unauthorized:
     request:
-      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/users/<$ users_create.content.phone $>'
       method: GET
       headers:
         - name: phone
@@ -94,7 +96,7 @@ requests:
 
   users_put_unauthorized:
     request:
-      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/users/<$ users_create.content.phone $>'
       method: PUT
       headers:
         - name: phone
@@ -111,7 +113,7 @@ requests:
 
   users_patch_unauthorized:
     request:
-      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/users/<$ users_create.content.phone $>'
       method: PATCH
       headers:
         - name: phone
@@ -128,7 +130,7 @@ requests:
 
   users_delete_unauthorized:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
       method: DELETE
       headers:
         - name: phone
@@ -143,7 +145,7 @@ requests:
   # start unauthenticated requests
   users_get_unauthenticated:
     request:
-      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/users/<$ users_create.content.phone $>'
       method: GET
     validate:
       - jsonpath: status
@@ -151,7 +153,7 @@ requests:
 
   users_put_unauthenticated:
     request:
-      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/users/<$ users_create.content.phone $>'
       method: PUT
       postData:
         mimeType: 'application/json'
@@ -163,7 +165,7 @@ requests:
 
   users_patch_unauthenticated:
     request:
-      url: '<$ globalBaseUrl $>/users/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/users/<$ users_create.content.phone $>'
       method: PATCH
       postData:
         mimeType: 'application/json'
@@ -175,7 +177,7 @@ requests:
 
   users_delete_unauthenticated:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
       method: DELETE
     validate:
       - jsonpath: status
@@ -185,7 +187,7 @@ requests:
   # start invalid params requests
   users_create_missing_email:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ baseUrl $>/<$ endpoint $>'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -197,7 +199,7 @@ requests:
 
   users_create_missing_password:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>'
+      url: '<$ baseUrl $>/<$ endpoint $>'
       method: POST
       postData:
         mimeType: 'application/json'
@@ -210,7 +212,7 @@ requests:
 
   users_get:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
       method: GET
       headers:
         - name: phone
@@ -226,7 +228,7 @@ requests:
 
   users_patch:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
       method: PATCH
       headers:
         - name: phone
@@ -248,7 +250,7 @@ requests:
 
   users_delete:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ users_create.content.phone $>'
       method: DELETE
       headers:
         - name: phone
@@ -262,7 +264,7 @@ requests:
   # start clean up
   users_delete_other:
     request:
-      url: '<$ globalBaseUrl $>/<$ endpoint $>/<$ users_other_create.content.phone $>'
+      url: '<$ baseUrl $>/<$ endpoint $>/<$ users_other_create.content.phone $>'
       method: DELETE
       headers:
         - name: phone
@@ -272,7 +274,7 @@ requests:
 
   user_token_delete:
     request:
-      url: '<$ globalBaseUrl $>/tokens/<$ users_token_create.content.id $>'
+      url: '<$ baseUrl $>/tokens/<$ users_token_create.content.id $>'
       method: DELETE
       headers:
         - name: phone
@@ -282,7 +284,7 @@ requests:
 
   user_token_delete_other:
     request:
-      url: '<$ globalBaseUrl $>/tokens/<$ users_token_other_create.content.id $>'
+      url: '<$ baseUrl $>/tokens/<$ users_token_other_create.content.id $>'
       method: DELETE
       headers:
         - name: phone
