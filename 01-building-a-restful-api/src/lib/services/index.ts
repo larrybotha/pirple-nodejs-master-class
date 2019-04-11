@@ -1,13 +1,17 @@
-import {checks} from './checks';
+import {apiServices} from './api';
+import {accountServices} from './account';
+import {home} from './home';
+import {checksServices} from './checks';
 import {notFound} from './not-found';
 import {ping} from './ping';
-import {tokens} from './tokens';
-import {users} from './users';
+import {sessionServices} from './session';
 
 const services = {
-  'api/checks/:id': checks,
-  'api/tokens/:id': tokens,
-  'api/users/:phone': users,
+  '': home,
+  ...apiServices,
+  ...accountServices,
+  ...sessionServices,
+  ...checksServices,
   notFound,
   ping,
 };
