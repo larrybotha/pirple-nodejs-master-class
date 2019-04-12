@@ -18,6 +18,10 @@ import {Handler, RequestData} from './types';
 const debug = debuglog('server');
 const {httpPort, httpsPort, envName} = config;
 
+const getDefaultResponseData = (contentType: string): object | string => {
+  return /json/.test(contentType) ? {} : '';
+};
+
 const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
   const parsedUrl = url.parse(req.url, true);
   const {headers} = req;
@@ -53,22 +57,30 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
       query,
     };
 
-    handler(data, (statusCode = 200, responseData = {}) => {
-      // indicate to clients that the response is json
-      res.setHeader('Content-type', 'application/json');
+    handler(
+      data,
+      (statusCode = 200, responseData, contentType = 'application/json') => {
+        const response = responseData || getDefaultResponseData(contentType);
 
-      // set the status code for the request
-      res.writeHead(statusCode);
+        // indicate to clients that the response is json
+        res.setHeader('Content-type', contentType);
 
-      // return the responseData as a string
-      res.end(JSON.stringify(responseData));
+        // set the status code for the request
+        res.writeHead(statusCode);
 
-      const logColour = /^2/.test(`${statusCode}`)
-        ? '\x1b[32m%s\x1b[0m'
-        : '\x1b[31m%s\x1b[0m';
+        // return the responseData as a string
+        res.end(JSON.stringify(response));
 
-      debug(logColour, `${method.toUpperCase()}/${trimmedPath} ${statusCode}`);
-    });
+        const logColour = /^2/.test(`${statusCode}`)
+          ? '\x1b[32m%s\x1b[0m'
+          : '\x1b[31m%s\x1b[0m';
+
+        debug(
+          logColour,
+          `${method.toUpperCase()}/${trimmedPath} ${statusCode}`
+        );
+      }
+    );
   });
 };
 
