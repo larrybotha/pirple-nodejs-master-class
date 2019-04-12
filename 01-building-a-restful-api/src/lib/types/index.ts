@@ -13,7 +13,8 @@ interface RequestData<T> {
 
 type HandlerCallback = (
   statusCode: number,
-  responseData?: ResponseSuccess | ResponseError
+  responseData?: ResponseSuccess | ResponseError,
+  contentType?: string
 ) => void;
 type Handler<T = any> = (data: RequestData<T>, cb: HandlerCallback) => void;
 
