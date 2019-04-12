@@ -1,18 +1,18 @@
-import dataLib from '../data';
-import helpers from '../helpers';
-import {Handler, RequestData} from '../types';
-import {User} from '../types/services/users';
-import {equals, exists, isOfType, minLength, trim} from '../validations';
+import dataLib from '../../data';
+import helpers from '../../helpers';
+import {Handler, RequestData} from '../../types';
+import {User} from '../../types/services/users';
+import {equals, exists, isOfType, minLength, trim} from '../../validations';
 
-import {createServiceRouter} from './utils/index';
+import {createServiceRouter} from '../utils/index';
+import {verifyToken} from '../utils/verify-token';
 import {
   validateFirstName,
   validateLastName,
   validatePassword,
   validatePhone,
   validateTos,
-} from './validations/users';
-import {verifyToken} from './utils/verify-token';
+} from '../validations/users';
 
 interface UserMethods {
   delete: Handler;

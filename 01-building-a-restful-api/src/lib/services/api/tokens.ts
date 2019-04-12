@@ -1,15 +1,15 @@
 import * as http from 'http';
 
-import dataLib from '../data';
-import helpers from '../helpers';
-import {Handler, RequestData} from '../types';
-import {Token} from '../types/services/tokens';
-import {User} from '../types/services/users';
-import {equals, exists} from '../validations';
+import dataLib from '../../data';
+import helpers from '../../helpers';
+import {Handler, RequestData} from '../../types';
+import {Token} from '../../types/services/tokens';
+import {User} from '../../types/services/users';
+import {equals, exists} from '../../validations';
 
-import {createServiceRouter} from './utils';
-import {verifyToken} from './utils/verify-token';
-import {validatePassword, validatePhone} from './validations/users';
+import {createServiceRouter} from '../utils';
+import {verifyToken} from '../utils/verify-token';
+import {validatePassword, validatePhone} from '../validations/users';
 
 interface TokenPostPayload {
   password: string;

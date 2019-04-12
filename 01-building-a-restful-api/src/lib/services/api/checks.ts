@@ -1,22 +1,22 @@
 import * as http from 'http';
 
-import config from '../../config';
-import dataLib from '../data';
-import helpers from '../helpers';
-import {Handler, RequestData} from '../types';
-import {Check} from '../types/services/checks';
-import {User} from '../types/services/users';
-import {Invalid, Valid} from '../validations';
+import config from '../../../config';
+import dataLib from '../../data';
+import helpers from '../../helpers';
+import {Handler, RequestData} from '../../types';
+import {Check} from '../../types/services/checks';
+import {User} from '../../types/services/users';
+import {Invalid, Valid} from '../../validations';
 
-import {createServiceRouter} from './utils';
-import {verifyToken} from './utils/verify-token';
+import {createServiceRouter} from '../utils';
+import {verifyToken} from '../utils/verify-token';
 import {
   validateMethod,
   validateProtocol,
   validateSuccessCodes,
   validateTimeoutSeconds,
   validateUrl,
-} from './validations/checks';
+} from '../validations/checks';
 
 const checksConfig = config.services.checks;
 
