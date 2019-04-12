@@ -40,7 +40,7 @@ requests:
           firstName: '<$ Faker("name.firstName") $>'
           lastName: '<$ Faker("name.lastName") $>'
           tosAgreement: 'true'
-    log: true
+    # log: true
 
   checks_token_create:
     request:
@@ -109,7 +109,8 @@ requests:
       - jsonpath: status
         expect: 201
       - jsonpath: content
-        jsonschema: <$ schemaValidate | dump | safe $>
+        jsonschema: <$ schemaValidate | dump | safe $>safe
+    # log: true
 
   checks_get:
     request:
@@ -125,6 +126,7 @@ requests:
         expect: 200
       - jsonpath: content
         jsonschema: <$ schemaValidate | dump | safe $>
+    # log: true
 
   checks_put:
     request:
