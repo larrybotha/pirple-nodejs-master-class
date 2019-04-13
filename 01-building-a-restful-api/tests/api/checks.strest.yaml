@@ -109,7 +109,7 @@ requests:
       - jsonpath: status
         expect: 201
       - jsonpath: content
-        jsonschema: <$ schemaValidate | dump | safe $>safe
+        jsonschema: <$ schemaValidate | dump | safe $>
     # log: true
 
   checks_get:
