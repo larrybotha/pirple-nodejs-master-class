@@ -9,8 +9,6 @@ interface ResponseError {
   [key: string]: any;
 }
 
-interface ResponseSuccess {
-  [key: string]: any;
-}
+type ResponseSuccess = {[key: string]: any} | string;
 
 export {ResponseError, ResponseSuccess};
