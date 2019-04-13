@@ -5,7 +5,8 @@
   "main": "index.js",
   "private": "true",
   "scripts": {
-    "prestart": "rm -rf dist && npm run tsc",
+    "prestart": "rm -rf dist && npm run tsc && npm run copy",
+    "prestart:debug": "npm run prestart",
     "prestart:homework-02": "npm run prestart && npm run copy:homework-02",
     "prestart:homework-02:debug": "npm run prestart:homework-02",
     "start": "concurrently npm:watch:server npm:watch:tsc npm:watch:test",
@@ -16,6 +17,7 @@
     "test": "jest",
     "test:api": "npm test -- -c ./config/tests/jest.newman.js",
     "tsc": "tsc",
+    "copy": "cp -r ./src/views ./dist/src",
     "copy:homework-02": "cp -r ./homework-02/https ./dist/homework-02 && cp -rf ./homework-02/.data ./dist/homework-02",
     "watch:tsc": "npm run tsc -- -w",
     "watch:test": "npm run test -- --watch",
