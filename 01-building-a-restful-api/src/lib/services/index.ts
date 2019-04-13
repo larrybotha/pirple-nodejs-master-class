@@ -7,11 +7,11 @@ import {ping} from './ping';
 import {sessionServices} from './session';
 
 const services = {
-  '': home,
   ...apiServices,
   ...accountServices,
   ...sessionServices,
   ...checksServices,
+  home,
   notFound,
   ping,
 };
