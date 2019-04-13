@@ -1,14 +1,20 @@
 import {Handler} from '../types';
 
-import {createServiceRouter} from './utils';
+import {createServiceRouter, getView} from './utils';
 
 const homeMethods: {[key: string]: Handler} = {
-  get: (_, cb) => {
-    cb(200, 'hello', 'text/html');
+  get: async (_, cb) => {
+    try {
+      const view = await getView('index');
+
+      cb(200, view, 'text/html');
+    } catch (err) {
+      cb(500, 'Server error');
+    }
   },
 };
 
 const allowedMethods = ['get'];
-const home = createServiceRouter(allowedMethods, homeMethods);
+const home = createServiceRouter(allowedMethods, homeMethods, 'text/html');
 
-export {home}
+export {home};
