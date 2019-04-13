@@ -32,8 +32,9 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
     const serviceParts = name.split('/');
     const pathParts = trimmedPath.split('/');
 
-    return serviceParts.every(
-      (part, i) => /^:/.test(part) || part === pathParts[i]
+    return (
+      (trimmedPath === '' && name === 'home') ||
+      serviceParts.every((part, i) => /^:/.test(part) || part === pathParts[i])
     );
   });
   const decoder = new StringDecoder('utf8');
@@ -69,7 +70,9 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
         res.writeHead(statusCode);
 
         // return the responseData as a string
-        res.end(JSON.stringify(response));
+        res.end(
+          typeof response === 'string' ? response : JSON.stringify(response)
+        );
 
         const logColour = /^2/.test(`${statusCode}`)
           ? '\x1b[32m%s\x1b[0m'
