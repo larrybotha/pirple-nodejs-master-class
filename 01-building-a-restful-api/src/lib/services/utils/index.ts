@@ -4,6 +4,9 @@ import {promisify} from 'util';
 
 import {Handler} from '../../types';
 
+import config from '../../../config';
+
+const {viewGlobals} = config;
 const asyncReadFile = promisify(fs.readFile);
 
 type CreateServiceRouter = (
@@ -27,6 +30,22 @@ const createServiceRouter: CreateServiceRouter = (
   }
 };
 
+const viewVarReplacer = (data: {[key: string]: any}) => (
+  match: string
+): string => {
+  const keys = match.replace(/^{|}$/g, '').split('.');
+  const value = keys.reduce((acc, key) => acc[key], data);
+
+  return value;
+};
+
+type InterpolateViewVars = (view: string, data: object) => string;
+const interpolateViewVars: InterpolateViewVars = (view, data) => {
+  const viewData = {...data, global: {...viewGlobals}};
+
+  return view.replace(/{\w*(\.\w*)?}/g, viewVarReplacer(viewData));
+};
+
 type GetWrappedView = (view: string, viewPath: string) => Promise<string>;
 const getWrappedView: GetWrappedView = async (view, viewPath) => {
   const partialsPath = path.resolve(viewPath, 'partials');
@@ -47,4 +66,4 @@ const getView: GetView = async (viewName, viewPath = '../../../views') => {
   return getWrappedView(viewContents, basePath);
 };
 
-export {createServiceRouter, getView};
+export {createServiceRouter, getView, interpolateViewVars};
