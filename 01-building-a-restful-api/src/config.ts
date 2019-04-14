@@ -19,7 +19,18 @@ interface Environment {
       token: string;
     };
   };
+
+  viewGlobals: {
+    [key: string]: any;
+  };
 }
+
+const viewGlobals = {
+  appName: 'RESTful API',
+  baseUrl: '/',
+  companyName: 'acme',
+  yearCreated: 1999,
+};
 
 const staging: Environment = {
   envName: 'staging',
@@ -38,6 +49,8 @@ const staging: Environment = {
       token: process.env.TWILIO_TOKEN,
     },
   },
+
+  viewGlobals,
 };
 const production: Environment = {
   envName: 'production',
@@ -56,6 +69,8 @@ const production: Environment = {
       token: process.env.TWILIO_TOKEN,
     },
   },
+
+  viewGlobals,
 };
 
 const environments: {[key: string]: Environment} = {
