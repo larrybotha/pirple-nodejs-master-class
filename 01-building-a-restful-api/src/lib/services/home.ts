@@ -1,15 +1,25 @@
 import {Handler} from '../types';
 
-import {createServiceRouter, getView} from './utils';
+import {createServiceRouter, getView, interpolateViewVars} from './utils';
+
+const viewData = {
+  body: {
+    className: 'home',
+  },
+  head: {
+    description: 'home page',
+    title: 'home',
+  },
+};
 
 const homeMethods: {[key: string]: Handler} = {
   get: async (_, cb) => {
     try {
       const view = await getView('index');
 
-      cb(200, view, 'text/html');
+      cb(200, interpolateViewVars(view, viewData), 'text/html');
     } catch (err) {
-      cb(500, 'Server error');
+      cb(500, err.message);
     }
   },
 };
