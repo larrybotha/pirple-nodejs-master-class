@@ -1,7 +1,29 @@
 <html>
   <head>
-    <title>RESTful API tutorial</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="content-language" content="en-us" />
+    <base href="{global.baseUrl}" />
+
+    <title>{head.title} | {global.appName}</title>
+    <meta name="description" content="{head.description}">
+
+    <link rel="image/x-icon" href="favicon.ico">
+    <script type="text/javascript" charset="utf-8" src="public/app.js"></script>
+    <link rel="stylesheet" href="public/app.css">
   </head>
-  <body>
+  <body class="{body.className}">
+    <div class="wrapper">
+      <header class="header">
+        <a class="logo" href="/">logo</a>
 
+        <nav class="menu">
+          <a href="/">home</a>
+          <a data-css-ui-vis-state="when-logged-out" href="/">signup</a>
+          <a data-css-ui-vis-state="when-logged-out" href="/">login</a>
+          <a data-css-ui-vis-state="when-logged-in"  href="/">dashboard</a>
+          <a data-css-ui-vis-state="when-logged-in" href="/">account</a>
+          <a data-css-ui-vis-state="when-logged-in" href="/">logout</a>
+        </nav>
+      </header>
 
+      <div class="content">
