@@ -1,6 +1,6 @@
 import {Handler} from '../types';
 
-import {createServiceRouter, getView, interpolateViewVars} from './utils';
+import {createServiceRouter, getView} from './utils';
 
 const viewData = {
   body: {
@@ -15,9 +15,9 @@ const viewData = {
 const homeMethods: {[key: string]: Handler} = {
   get: async (_, cb) => {
     try {
-      const view = await getView('index');
+      const view = await getView('index', viewData);
 
-      cb(200, interpolateViewVars(view, viewData), 'text/html');
+      cb(200, view, 'text/html');
     } catch (err) {
       cb(500, err.message);
     }

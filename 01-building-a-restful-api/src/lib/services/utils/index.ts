@@ -46,24 +46,37 @@ const interpolateViewVars: InterpolateViewVars = (view, data) => {
   return view.replace(/{\w*(\.\w*)?}/g, viewVarReplacer(viewData));
 };
 
-type GetWrappedView = (view: string, viewPath: string) => Promise<string>;
-const getWrappedView: GetWrappedView = async (view, viewPath) => {
+type GetWrappedView = (
+  view: string,
+  viewData: {[key: string]: any},
+  viewPath: string
+) => Promise<string>;
+const getWrappedView: GetWrappedView = async (view, viewData, viewPath) => {
   const partialsPath = path.resolve(viewPath, 'partials');
   const [header, footer] = await Promise.all([
     asyncReadFile(path.join(partialsPath, '_header.html'), 'utf8'),
     asyncReadFile(path.join(partialsPath, '_footer.html'), 'utf8'),
   ]);
+  const viewContents = [header, view, footer].join('');
 
-  return [header, view, footer].join('');
+  return interpolateViewVars(viewContents, viewData);
 };
 
-type GetView = (viewName: string, viewPath?: string) => Promise<string>;
-const getView: GetView = async (viewName, viewPath = '../../../views') => {
+type GetView = (
+  viewName: string,
+  viewData: {[key: string]: any},
+  viewPath?: string
+) => Promise<string>;
+const getView: GetView = async (
+  viewName,
+  viewData,
+  viewPath = '../../../views'
+) => {
   const basePath = path.resolve(__dirname, viewPath);
   const viewFile = path.join(basePath, `${viewName}.html`);
   const viewContents = await asyncReadFile(viewFile, 'utf8');
 
-  return getWrappedView(viewContents, basePath);
+  return getWrappedView(viewContents, viewData, basePath);
 };
 
-export {createServiceRouter, getView, interpolateViewVars};
+export {createServiceRouter, getView};
