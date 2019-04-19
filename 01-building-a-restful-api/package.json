@@ -17,7 +17,7 @@
     "test": "jest",
     "test:api": "npm test -- -c ./config/tests/jest.newman.js",
     "tsc": "tsc",
-    "copy": "cp -r ./src/views ./dist/src",
+    "copy": "cp -r ./src/{views,public} ./dist/src",
     "copy:homework-02": "cp -r ./homework-02/https ./dist/homework-02 && cp -rf ./homework-02/.data ./dist/homework-02",
     "watch:tsc": "npm run tsc -- -w",
     "watch:test": "npm run test -- --watch",
