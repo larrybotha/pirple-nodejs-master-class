@@ -6,6 +6,7 @@ import {home} from './home';
 import {notFound} from './not-found';
 import {ping} from './ping';
 import {sessionServices} from './session';
+import {staticAssetsService} from './static-assets';
 
 const services = {
   ...apiServices,
@@ -16,6 +17,7 @@ const services = {
   home,
   notFound,
   ping,
+  'public/:asset': staticAssetsService,
 };
 
 export default services;
