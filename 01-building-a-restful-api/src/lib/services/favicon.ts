@@ -1,10 +1,16 @@
 import {Handler} from '../types';
 
-import {createServiceRouter} from './utils';
+import {createServiceRouter, getStaticAsset} from './utils';
 
 const faviconMethods: {[key: string]: Handler} = {
-  get: (_, cb) => {
-    cb(200, {}, 'image/x-icon');
+  get: async (_, cb) => {
+    try {
+      const favicon = await getStaticAsset('public/favicon.ico');
+
+      cb(200, favicon, 'image/x-icon');
+    } catch (err) {
+      cb(500, err);
+    }
   },
 };
 
