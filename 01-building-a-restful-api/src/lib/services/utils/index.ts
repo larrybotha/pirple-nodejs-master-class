@@ -79,4 +79,12 @@ const getView: GetView = async (
   return getWrappedView(viewContents, viewData, basePath);
 };
 
-export {createServiceRouter, getView};
+type GetStaticAsset = (filepath: string) => Promise<string>;
+const getStaticAsset: GetStaticAsset = async filepath => {
+  const absPath = path.resolve(__dirname, '../../..', filepath);
+  const file = await asyncReadFile(absPath, 'utf8');
+
+  return file;
+};
+
+export {createServiceRouter, getStaticAsset, getView};
