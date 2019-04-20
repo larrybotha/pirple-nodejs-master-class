@@ -71,7 +71,9 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
 
         // return the responseData as a string
         res.end(
-          typeof response === 'string' ? response : JSON.stringify(response)
+          typeof response === 'string' || /image/.test(contentType)
+            ? response
+            : JSON.stringify(response)
         );
 
         const logColour = /^2/.test(`${statusCode}`)

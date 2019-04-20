@@ -79,10 +79,10 @@ const getView: GetView = async (
   return getWrappedView(viewContents, viewData, basePath);
 };
 
-type GetStaticAsset = (filepath: string) => Promise<string>;
+type GetStaticAsset = (filepath: string) => Promise<Buffer>;
 const getStaticAsset: GetStaticAsset = async filepath => {
   const absPath = path.resolve(__dirname, '../../..', filepath);
-  const file = await asyncReadFile(absPath, 'utf8');
+  const file = await asyncReadFile(absPath);
 
   return file;
 };
