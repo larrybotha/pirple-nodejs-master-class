@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 import {Handler} from '../types';
 
 import {createServiceRouter, getStaticAsset} from './utils';
@@ -12,17 +14,18 @@ const contentTypeMap: {[key: string]: string} = {
 
 const staticAssetsMethods: {[key: string]: Handler} = {
   get: async ({pathname}, cb) => {
-    const ext = pathname
-      .split('.')
-      .reverse()
-      .find(Boolean);
+    const {ext} = path.parse(pathname);
 
     try {
-      const staticAssets = await getStaticAsset(pathname);
+      const asset = await getStaticAsset(pathname);
+      const contentType = contentTypeMap[ext.replace('.', '')] || 'text/plain';
 
-      cb(200, staticAssets, contentTypeMap[ext] || 'text/plain');
+      cb(
+        200,
+        /image/.test(contentType) ? asset : asset.toString('utf8'),
+        contentType
+      );
     } catch (err) {
-      debugger;
       cb(500, err);
     }
   },
