@@ -1,5 +1,5 @@
-import server from './server/server';
-import workers from './server/workers';
+import server from './lib/server';
+import workers from './lib/workers';
 
 const init = () => {
   // start the server
