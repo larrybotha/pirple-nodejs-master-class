@@ -1,9 +1,11 @@
 import {config} from './config';
 import {client} from './client';
+import {forms} from './forms';
 
 const app = {
   client,
   config,
+  forms,
 };
 
 const requestPing = async () => {
@@ -16,3 +18,6 @@ const requestPing = async () => {
 };
 
 requestPing();
+
+// Call the init processes after the window loads
+window.addEventListener('load', forms.bind);
