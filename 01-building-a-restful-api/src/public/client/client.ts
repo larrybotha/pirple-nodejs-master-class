@@ -32,7 +32,7 @@ const client = {
         xhr.setRequestHeader('token', sessionToken);
       }
 
-      xhr.onreadystatechange = () => {
+      xhr.addEventListener('readystatechange', () => {
         if (xhr.readyState === XMLHttpRequest.DONE) {
           const {responseText, status} = xhr;
 
@@ -52,7 +52,7 @@ const client = {
             }
           }
         }
-      };
+      });
 
       xhr.send(payload ? JSON.stringify(payload) : undefined);
     });
