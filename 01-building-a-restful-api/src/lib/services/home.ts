@@ -3,12 +3,10 @@ import {Handler} from '../types';
 import {createServiceRouter, getView} from './utils';
 
 const viewData = {
-  body: {
-    className: 'home',
-  },
+  body: {className: 'home'},
   head: {
-    description: 'home page',
-    title: 'home',
+    description: `Dolor fugit itaque aspernatur placeat illo hic id Nulla cum at accusamus nesciunt temporibus quisquam Nulla similique laudantium quidem iure facere? Quibusdam cumque a nisi doloribus dolorem. Accusantium excepturi commodi.`,
+    title: 'Uptime Monitoring - Made Simple',
   },
 };
 
