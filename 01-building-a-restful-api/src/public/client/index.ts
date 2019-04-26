@@ -1,5 +1,5 @@
-import {config} from './config';
 import {client} from './client';
+import {config} from './config';
 import {forms} from './forms';
 
 const app = {
@@ -8,16 +8,5 @@ const app = {
   forms,
 };
 
-const requestPing = async () => {
-  try {
-    const result = await app.client.request({path: '/ping', method: 'GET'});
-    console.log(result);
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-requestPing();
-
 // Call the init processes after the window loads
-window.addEventListener('load', forms.bind);
+window.addEventListener('load', forms.bindForm);
