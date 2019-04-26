@@ -10,53 +10,53 @@ const createQueryString = (
   return qs.length ? `?${qs}` : '';
 };
 
-const client = {
-  request: ({
-    headers = [],
-    queryStringObject = {},
-    ...rest
-  }: RequestOptions): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const {callback, method, path, payload, sessionToken} = rest;
-      const xhr = new XMLHttpRequest();
-      const qs = createQueryString(queryStringObject);
-      const requestUrl = `${path}${qs}`;
+const request = ({
+  headers = [],
+  queryStringObject = {},
+  ...rest
+}: RequestOptions): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    const {callback, method, path, payload, sessionToken} = rest;
+    const xhr = new XMLHttpRequest();
+    const qs = createQueryString(queryStringObject);
+    const requestUrl = `${path}${qs}`;
 
-      xhr.open(method, requestUrl);
+    xhr.open(method, requestUrl);
 
-      xhr.setRequestHeader('Content-type', 'application/json');
+    xhr.setRequestHeader('Content-type', 'application/json');
 
-      headers.map(({name, value}) => xhr.setRequestHeader(name, value));
+    headers.map(({name, value}) => xhr.setRequestHeader(name, value));
 
-      if (sessionToken) {
-        xhr.setRequestHeader('token', sessionToken);
-      }
+    if (sessionToken) {
+      xhr.setRequestHeader('token', sessionToken);
+    }
 
-      xhr.addEventListener('readystatechange', () => {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-          const {responseText, status} = xhr;
+    xhr.addEventListener('readystatechange', () => {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        const {responseText, status} = xhr;
 
-          try {
-            const parsedResponse = JSON.parse(responseText);
+        try {
+          const parsedResponse = JSON.parse(responseText);
 
-            if (/\^2/.test(`${status}`)) {
-              resolve(parsedResponse);
-            } else {
-              reject(parsedResponse);
-            }
-          } catch (err) {
-            if (/\^2/.test(`${status}`)) {
-              resolve(responseText);
-            } else {
-              reject(responseText);
-            }
+          if (/\^2/.test(`${status}`)) {
+            resolve(parsedResponse);
+          } else {
+            reject(parsedResponse);
+          }
+        } catch (err) {
+          if (/\^2/.test(`${status}`)) {
+            resolve(responseText);
+          } else {
+            reject(responseText);
           }
         }
-      });
-
-      xhr.send(payload ? JSON.stringify(payload) : undefined);
+      }
     });
-  },
+
+    xhr.send(payload ? JSON.stringify(payload) : undefined);
+  });
 };
+
+const client = {request};
 
 export {client};
