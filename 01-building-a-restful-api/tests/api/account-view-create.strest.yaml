@@ -1,0 +1,60 @@
+---
+version: 2
+
+variables:
+  baseUrl: http://localhost:3000/accounts/create
+
+requests:
+  # start success responses
+  account_create_get:
+    request:
+      url: '<$ baseUrl $>'
+      method: GET
+    validate:
+      - jsonpath: status
+        expect: 200
+      - jsonpath: headers["content-type"]
+        expect: 'text/html'
+  # start success responses
+
+  # start unauthorised requests
+  accounts_create_post:
+    request:
+      url: '<$ baseUrl $>'
+      method: POST
+    validate:
+      - jsonpath: status
+        expect: 405
+      - jsonpath: headers["content-type"]
+        expect: 'text/html'
+
+  accounts_create_put:
+    request:
+      url: '<$ baseUrl $>'
+      method: PUT
+    validate:
+      - jsonpath: status
+        expect: 405
+      - jsonpath: headers["content-type"]
+        expect: 'text/html'
+
+  accounts_create_patch:
+    request:
+      url: '<$ baseUrl $>'
+      method: PATCH
+    validate:
+      - jsonpath: status
+        expect: 405
+      - jsonpath: headers["content-type"]
+        expect: 'text/html'
+
+  accounts_create_delete:
+    request:
+      url: '<$ baseUrl $>'
+      method: DELETE
+    validate:
+      - jsonpath: status
+        expect: 405
+      - jsonpath: headers["content-type"]
+        expect: 'text/html'
+  # end unauthorised requests
