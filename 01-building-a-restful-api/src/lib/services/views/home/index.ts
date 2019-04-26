@@ -1,6 +1,6 @@
-import {Handler} from '../types';
+import {Handler} from '../../../types';
 
-import {createServiceRouter, getView} from './utils';
+import {createServiceRouter, getView} from '../../utils';
 
 const viewData = {
   body: {className: 'home'},

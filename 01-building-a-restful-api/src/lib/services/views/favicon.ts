@@ -1,6 +1,6 @@
-import {Handler} from '../types';
+import {Handler} from '../../types';
 
-import {createServiceRouter, getStaticAsset} from './utils';
+import {createServiceRouter, getStaticAsset} from '../utils';
 
 const faviconMethods: {[key: string]: Handler} = {
   get: async (_, cb) => {

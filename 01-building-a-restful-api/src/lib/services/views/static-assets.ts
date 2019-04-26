@@ -1,8 +1,8 @@
 import * as path from 'path';
 
-import {Handler} from '../types';
+import {Handler} from '../../types';
 
-import {createServiceRouter, getStaticAsset} from './utils';
+import {createServiceRouter, getStaticAsset} from '../utils';
 
 const contentTypeMap: {[key: string]: string} = {
   css: 'text/css',
