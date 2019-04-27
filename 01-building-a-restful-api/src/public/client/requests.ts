@@ -44,7 +44,11 @@ const makeRequest = ({
             resolve(parsedResponse);
           }
         } catch (err) {
-          reject(responseText);
+          if (/^2/.test(`${status}`)) {
+            resolve(responseText);
+          } else {
+            reject(responseText);
+          }
         }
       }
     });
