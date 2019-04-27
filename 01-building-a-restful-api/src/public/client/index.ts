@@ -1,9 +1,9 @@
-import {client} from './client';
+import {requests} from './requests';
 import {config} from './config';
 import {forms} from './forms';
 
 const app = {
-  client,
+  requests,
   config,
   forms,
 };

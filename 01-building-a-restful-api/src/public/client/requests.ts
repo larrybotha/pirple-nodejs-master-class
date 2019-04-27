@@ -10,7 +10,7 @@ const createQueryString = (
   return qs.length ? `?${qs}` : '';
 };
 
-const request = ({
+const makeRequest = ({
   headers = [],
   queryStringObject = {},
   ...rest
@@ -38,17 +38,13 @@ const request = ({
         try {
           const parsedResponse = JSON.parse(responseText);
 
-          if (/\^2/.test(`${status}`)) {
+          if (/^2/.test(`${status}`)) {
             resolve(parsedResponse);
           } else {
-            reject(parsedResponse);
+            resolve(parsedResponse);
           }
         } catch (err) {
-          if (/\^2/.test(`${status}`)) {
-            resolve(responseText);
-          } else {
-            reject(responseText);
-          }
+          reject(responseText);
         }
       }
     });
@@ -57,6 +53,6 @@ const request = ({
   });
 };
 
-const client = {request};
+const requests = {makeRequest};
 
-export {client};
+export {requests};
