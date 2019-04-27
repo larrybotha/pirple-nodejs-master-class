@@ -32,7 +32,6 @@ const bindForm = () => {
 
       responseProcessor(id, payload, responsePayload);
     } catch (err) {
-      debugger;
       formErrorEl.style.display = 'inherit';
       formErrorEl.innerHTML = JSON.stringify(err, null, 2);
       responseProcessor(id, payload, err);

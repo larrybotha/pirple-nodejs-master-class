@@ -1,13 +1,13 @@
-import {accountServices} from './accounts';
-import {checksServices} from './checks';
+import {accountsService} from './accounts';
+import {checksService} from './checks';
 import {faviconService} from './favicon';
 import {home} from './home';
-import {sessionServices} from './session';
+import {sessionsService} from './sessions';
 import {staticAssetsService} from './static-assets';
 
 const viewServices = {
-  ...accountServices,
-  // ...sessionServices,
+  ...accountsService,
+  ...sessionsService,
   // ...checksServices,
   'favicon.ico': faviconService,
   home,
