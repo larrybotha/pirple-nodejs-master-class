@@ -1,5 +1,6 @@
 interface Config {
-  sessionToken: undefined | string;
+  sessionToken: null | {id: string};
+  [key: string]: any;
 }
 
 export {Config};

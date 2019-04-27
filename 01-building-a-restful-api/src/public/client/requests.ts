@@ -28,7 +28,7 @@ const makeRequest = ({
     headers.map(({name, value}) => xhr.setRequestHeader(name, value));
 
     if (sessionToken) {
-      xhr.setRequestHeader('token', sessionToken);
+      xhr.setRequestHeader('token', sessionToken.id);
     }
 
     xhr.addEventListener('readystatechange', () => {

@@ -1,7 +1,8 @@
 import {requests} from './requests';
+import {session} from './session';
 
 // Bind the forms
-const bindForm = () => {
+const bindForms = () => {
   document.querySelector('form').addEventListener('submit', async e => {
     // Stop it from submitting
     e.preventDefault();
@@ -30,30 +31,85 @@ const bindForm = () => {
         payload,
       });
 
-      responseProcessor(id, payload, responsePayload);
+      responseProcessor({id, payload, responsePayload});
     } catch (err) {
       formErrorEl.style.display = 'inherit';
       formErrorEl.innerHTML = JSON.stringify(err, null, 2);
-      responseProcessor(id, payload, err);
+      responseProcessor({id, payload, responsePayload: err});
     }
   });
 };
 
-// Form response processor
-const responseProcessor = (
-  id: string,
-  requestPayload: any,
-  responsePayload: any
-) => {
-  const functionToCall = false;
+interface ResponseProcessorParams {
+  id: string;
+  payload: any;
+  responsePayload: any;
+}
+type ResponseProcessor = (options: ResponseProcessorParams) => void;
 
-  if (id === 'accountCreate') {
-    // @TODO Do something here now that the account has been created successfully
+const handleSuccessfulAccountCreation: ResponseProcessor = async ({
+  id,
+  payload,
+  responsePayload,
+}) => {
+  const newPayload = {
+    password: payload.password,
+    phone: payload.phone,
+  };
+  const form = document.querySelector(`#${id}`) as HTMLFormElement;
+  const formErrorEl = form.querySelector('.formError') as HTMLElement;
+
+  try {
+    const {
+      statusCode,
+      responsePayload: newResponsePayload,
+    } = await requests.makeRequest({
+      method: 'POST',
+      path: 'api/tokens',
+      payload: newPayload,
+    });
+
+    if (/^2/.test(`${statusCode}`)) {
+      // If successful, set the token and redirect the user
+      session.setToken(newResponsePayload);
+      window.location.replace('/checks/all');
+    } else {
+      formErrorEl.innerHTML = 'Sorry, an error has occured. Please try again.';
+      formErrorEl.style.display = 'block';
+    }
+  } catch (err) {
+    formErrorEl.innerHTML = 'Sorry, an error has occured. Please try again.';
+    formErrorEl.style.display = 'block';
+  }
+};
+
+const handleSuccessfulTokenCreation: ResponseProcessor = ({
+  responsePayload,
+}) => {
+  session.setToken(responsePayload);
+  window.location.replace('/checks/all');
+};
+
+interface ResponseMap {
+  [key: string]: ResponseProcessor;
+}
+const responseSuccessMap: ResponseMap = {
+  'api/tokens': handleSuccessfulTokenCreation,
+  'api/users': handleSuccessfulAccountCreation,
+};
+
+// Form response processor
+const responseProcessor: ResponseProcessor = options => {
+  const {payload} = options;
+  const fn = responseSuccessMap[payload.path];
+
+  if (fn) {
+    fn(options);
   }
 };
 
 const forms = {
-  bindForm,
+  bindForms,
   responseProcessor,
 };
 
