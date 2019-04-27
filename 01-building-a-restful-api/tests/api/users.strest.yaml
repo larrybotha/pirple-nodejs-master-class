@@ -32,7 +32,7 @@ requests:
           lastName: '<$ Faker("name.lastName") $>'
           password: '<$ password $>'
           phone: '<$ Faker("phone.phoneNumberFormat") $>'
-          tosAgreement: 'true'
+          tosAgreement: true
     validate:
       - jsonpath: status
         expect: 201
@@ -61,7 +61,7 @@ requests:
           lastName: '<$ Faker("name.lastName") $>'
           password: '<$ password $>'
           phone: '<$ Faker("phone.phoneNumberFormat") $>'
-          tosAgreement: 'true'
+          tosAgreement: true
     validate:
       - jsonpath: status
         expect: 201

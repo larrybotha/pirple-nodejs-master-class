@@ -39,7 +39,7 @@ requests:
           password: password
           firstName: '<$ Faker("name.firstName") $>'
           lastName: '<$ Faker("name.lastName") $>'
-          tosAgreement: 'true'
+          tosAgreement: true
     # log: true
 
   checks_token_create:

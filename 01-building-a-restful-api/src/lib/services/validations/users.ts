@@ -30,11 +30,12 @@ const validatePassword = (password: string) =>
     .map(trim())
     .find(Boolean);
 
-const validateTos = (tos: string | boolean) =>
-  [tos]
+const validateTos = (tos: string | boolean) => {
+  return [tos]
     .map(exists('TOS is required'))
-    .map(equals('true', 'TOS must be true'))
+    .map(equals(true, 'TOS must be true'))
     .find(Boolean);
+};
 
 export {
   validateFirstName,
