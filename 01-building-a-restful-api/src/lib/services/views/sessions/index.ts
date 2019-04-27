@@ -2,7 +2,7 @@ import {create} from './create';
 
 const sessionsService = {
   'sessions/create': create,
-  'sessions/delete': '',
+  // 'sessions/delete': '',
 };
 
 export {sessionsService};
