@@ -1,7 +1,7 @@
-const checksServices = {
+const checksService = {
   checks: '',
   'checks/create': '',
   'checks/edit': '',
 };
 
-export {checksServices};
+export {checksService};

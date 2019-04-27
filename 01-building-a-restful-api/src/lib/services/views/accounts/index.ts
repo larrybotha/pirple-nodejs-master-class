@@ -1,7 +1,7 @@
 import {create} from './create';
 
-const accountServices = {
+const accountsService = {
   'accounts/create': create,
 };
 
-export {accountServices};
+export {accountsService};
