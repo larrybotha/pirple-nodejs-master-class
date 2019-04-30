@@ -60,23 +60,14 @@ const handleSuccessfulAccountCreation: ResponseProcessor = async ({
   const formErrorEl = form.querySelector('.formError') as HTMLElement;
 
   try {
-    const {
-      statusCode,
-      responsePayload: newResponsePayload,
-    } = await requests.makeRequest({
+    const result = await requests.makeRequest({
       method: 'POST',
       path: 'api/tokens',
       payload: newPayload,
     });
 
-    if (/^2/.test(`${statusCode}`)) {
-      // If successful, set the token and redirect the user
-      session.setToken(newResponsePayload);
-      window.location.replace('/checks/all');
-    } else {
-      formErrorEl.innerHTML = 'Sorry, an error has occured. Please try again.';
-      formErrorEl.style.display = 'block';
-    }
+    session.setToken(result.id);
+    window.location.replace('/checks/all');
   } catch (err) {
     formErrorEl.innerHTML = 'Sorry, an error has occured. Please try again.';
     formErrorEl.style.display = 'block';
@@ -94,14 +85,14 @@ interface ResponseMap {
   [key: string]: ResponseProcessor;
 }
 const responseSuccessMap: ResponseMap = {
-  'api/tokens': handleSuccessfulTokenCreation,
-  'api/users': handleSuccessfulAccountCreation,
+  accountCreate: handleSuccessfulAccountCreation,
+  sessionCreate: handleSuccessfulTokenCreation,
 };
 
 // Form response processor
 const responseProcessor: ResponseProcessor = options => {
-  const {payload} = options;
-  const fn = responseSuccessMap[payload.path];
+  const {id} = options;
+  const fn = responseSuccessMap[id];
 
   if (fn) {
     fn(options);
