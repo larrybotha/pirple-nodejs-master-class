@@ -3,41 +3,44 @@ import {session} from './session';
 
 // Bind the forms
 const bindForms = () => {
-  document.querySelector('form').addEventListener('submit', async e => {
-    // Stop it from submitting
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const {action: path, elements, id, method: m} = form;
-    const method = m.toUpperCase();
-    const formErrorEl = form.querySelector('.formError') as HTMLElement;
+  const formEl = document.querySelector('form');
 
-    // Hide the error message (if it's currently shown due to a previous error)
-    formErrorEl.style.display = 'none';
+  if (formEl) {
+    formEl.addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const {action: path, elements, id, method: m} = form;
+      const method = m.toUpperCase();
+      const formErrorEl = form.querySelector('.formError') as HTMLElement;
 
-    // Turn the inputs into a payload
-    const payload = [...elements]
-      .filter((elem: HTMLFormElement) => elem.type !== 'submit')
-      .reduce((acc: object, elem: HTMLFormElement) => {
-        const value = elem.type === 'checkbox' ? elem.checked : elem.value;
+      // Hide the error message (if it's currently shown due to a previous error)
+      formErrorEl.style.display = 'none';
 
-        return {...acc, [elem.name]: value};
-      }, {});
+      // Turn the inputs into a payload
+      const payload = [...elements]
+        .filter((elem: HTMLFormElement) => elem.type !== 'submit')
+        .reduce((acc: object, elem: HTMLFormElement) => {
+          const value = elem.type === 'checkbox' ? elem.checked : elem.value;
 
-    // Call the API
-    try {
-      const {statusCode, responsePayload} = await requests.makeRequest({
-        method,
-        path,
-        payload,
-      });
+          return {...acc, [elem.name]: value};
+        }, {});
 
-      responseProcessor({id, payload, responsePayload});
-    } catch (err) {
-      formErrorEl.style.display = 'inherit';
-      formErrorEl.innerHTML = JSON.stringify(err, null, 2);
-      responseProcessor({id, payload, responsePayload: err});
-    }
-  });
+      // Call the API
+      try {
+        const {statusCode, responsePayload} = await requests.makeRequest({
+          method,
+          path,
+          payload,
+        });
+
+        responseProcessor({id, payload, responsePayload});
+      } catch (err) {
+        formErrorEl.style.display = 'inherit';
+        formErrorEl.innerHTML = JSON.stringify(err, null, 2);
+        responseProcessor({id, payload, responsePayload: err});
+      }
+    });
+  }
 };
 
 interface ResponseProcessorParams {
