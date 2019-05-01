@@ -60,7 +60,7 @@ const renewToken = (currentToken: Config['sessionToken']) => {
 
     try {
       const {statusCode, responsePayload} = await requests.makeRequest({
-        method: 'PUT',
+        method: 'PATCH',
         path: 'api/tokens',
         payload,
       });
@@ -98,7 +98,32 @@ const startTokenRenewalLoop = () => {
   }, 1000 * 60);
 };
 
+const logoutHandler = async () => {
+  const id = configs.get('id');
+
+  try {
+    await requests.makeRequest({
+      path: '/api/tokens',
+      method: 'DELETE',
+      payload: {id},
+    });
+
+    window.location.replace('/sessions/delete');
+  } catch (err) {
+    alert(err);
+  }
+};
+
+const bindLogoutHandler = () => {
+  const logoutBtn = document.querySelector('.js-logout-btn');
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', logoutHandler);
+  }
+};
+
 const session = {
+  bindLogoutHandler,
   performSessionSideEffects,
   renewToken,
   setToken,

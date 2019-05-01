@@ -17,4 +17,5 @@ window.addEventListener('load', () => {
   session.performSessionSideEffects();
 
   session.startTokenRenewalLoop();
+  session.bindLogoutHandler();
 });
