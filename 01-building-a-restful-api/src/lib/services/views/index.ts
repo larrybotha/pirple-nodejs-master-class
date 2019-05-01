@@ -8,7 +8,7 @@ import {staticAssetsService} from './static-assets';
 const viewServices = {
   ...accountsService,
   ...sessionsService,
-  // ...checksServices,
+  ...checksService,
   'favicon.ico': faviconService,
   home,
   'public/:asset': staticAssetsService,

@@ -1,7 +1,9 @@
+import {checksList} from './list';
+
 const checksService = {
-  checks: '',
-  'checks/create': '',
-  'checks/edit': '',
+  'checks/all': checksList,
+  // 'checks/create': '',
+  // 'checks/edit': '',
 };
 
 export {checksService};
