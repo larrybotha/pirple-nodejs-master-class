@@ -27,17 +27,21 @@ const bindForms = () => {
 
       // Call the API
       try {
-        const {statusCode, responsePayload} = await requests.makeRequest({
+	const {statusCode, responsePayload} = await requests.makeRequest({
           method,
           path,
           payload,
         });
 
-        responseProcessor({id, payload, responsePayload});
+        if (/^2/.test(`${statusCode}`)) {
+          responseProcessor({id, payload, responsePayload});
+        } else {
+          throw responsePayload;
+        }
       } catch (err) {
         formErrorEl.style.display = 'inherit';
         formErrorEl.innerHTML = JSON.stringify(err, null, 2);
-        responseProcessor({id, payload, responsePayload: err});
+        // responseProcessor({id, payload, responsePayload: err});
       }
     });
   }
