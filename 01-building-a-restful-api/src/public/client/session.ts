@@ -21,6 +21,8 @@ const performSessionSideEffects = () => {
       configs.set('sessionToken', null);
       setLoggedInClass(false);
     }
+  } else {
+    setLoggedInClass(false);
   }
 };
 
@@ -38,15 +40,10 @@ const setLoggedInClass = (add: boolean) => {
 // Set the session token in the config object as well as localstorage
 const setToken = (token?: Config['sessionToken']) => {
   const tokenString = JSON.stringify(token);
-  configs.set('sessionToken', token);
 
   localStorage.setItem('token', tokenString);
 
-  if (typeof token === 'object') {
-    setLoggedInClass(true);
-  } else {
-    setLoggedInClass(false);
-  }
+  performSessionSideEffects();
 };
 
 // Renew the token
