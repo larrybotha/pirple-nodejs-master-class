@@ -41,7 +41,7 @@ const makeRequest = ({
           if (/^2/.test(`${status}`)) {
             resolve(parsedResponse);
           } else {
-            resolve(parsedResponse);
+            reject(parsedResponse);
           }
         } catch (err) {
           if (/^2/.test(`${status}`)) {
