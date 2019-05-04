@@ -4,23 +4,11 @@ import {Config} from './types/config';
 
 // Get the session token from localstorage and set it in the config object
 const performSessionSideEffects = () => {
-  const tokenString = localStorage.getItem('token');
+  const tokenId = localStorage.getItem('tokenId');
 
-  if (typeof tokenString === 'string') {
-    try {
-      const token = JSON.parse(tokenString);
-
-      configs.set('sessionToken', token);
-
-      if (typeof token === 'object') {
-        setLoggedInClass(true);
-      } else {
-        setLoggedInClass(false);
-      }
-    } catch (e) {
-      configs.set('sessionToken', null);
-      setLoggedInClass(false);
-    }
+  if (tokenId) {
+    configs.set('sessionToken', tokenId);
+    setLoggedInClass(true);
   } else {
     setLoggedInClass(false);
   }
@@ -38,10 +26,8 @@ const setLoggedInClass = (add: boolean) => {
 };
 
 // Set the session token in the config object as well as localstorage
-const setToken = (token?: Config['sessionToken']) => {
-  const tokenString = JSON.stringify(token);
-
-  localStorage.setItem('token', tokenString);
+const setToken = (tokenId?: string) => {
+  localStorage.setItem('tokenId', tokenId);
 
   performSessionSideEffects();
 };
@@ -56,19 +42,14 @@ const renewToken = (currentToken: Config['sessionToken']) => {
     };
 
     try {
-      const {statusCode, responsePayload} = await requests.makeRequest({
+      const result = await requests.makeRequest({
         method: 'PATCH',
         path: 'api/tokens',
         payload,
       });
 
-      // Display an error on the form if needed
-      if (/^2/.test(`${statusCode}`)) {
-        setToken(responsePayload);
-        resolve();
-      } else {
-        throw new Error(responsePayload);
-      }
+      setToken(result.id);
+      resolve();
     } catch (err) {
       setToken();
       reject();
@@ -96,13 +77,13 @@ const startTokenRenewalLoop = () => {
 };
 
 const logoutHandler = async () => {
-  const id = configs.get('id');
+  const id = configs.get('sessionToken');
 
   try {
     await requests.makeRequest({
-      path: '/api/tokens',
       method: 'DELETE',
-      payload: {id},
+      path: `/api/tokens/${id}`,
+      headers: [{name: 'token', value: id}],
     });
 
     window.location.replace('/sessions/delete');

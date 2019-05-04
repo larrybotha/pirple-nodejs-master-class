@@ -27,17 +27,13 @@ const bindForms = () => {
 
       // Call the API
       try {
-	const {statusCode, responsePayload} = await requests.makeRequest({
+        const result = await requests.makeRequest({
           method,
           path,
           payload,
         });
 
-        if (/^2/.test(`${statusCode}`)) {
-          responseProcessor({id, payload, responsePayload});
-        } else {
-          throw responsePayload;
-        }
+        responseProcessor({id, payload, responsePayload: result});
       } catch (err) {
         formErrorEl.style.display = 'inherit';
         formErrorEl.innerHTML = JSON.stringify(err, null, 2);
@@ -84,7 +80,7 @@ const handleSuccessfulAccountCreation: ResponseProcessor = async ({
 const handleSuccessfulTokenCreation: ResponseProcessor = ({
   responsePayload,
 }) => {
-  session.setToken(responsePayload);
+  session.setToken(responsePayload.id);
   window.location.replace('/checks/all');
 };
 
