@@ -55,20 +55,16 @@ body,p,h1,h2,h3,h4,h5,h6,div,span,header,footer,img,a,a:hover,a:active,a:visited
   font-size: 11px;
 }
 
-body.loggedIn .header ul li [data-css-ui-vis-state="when-logged-out"]{
+body.loggedIn .menu [data-css-ui-vis-state="when-logged-out"]{
   display: none;
 }
 
-body .header ul li [data-css-ui-vis-state="when-logged-in"]{
+body .menu [data-css-ui-vis-state="when-logged-in"]{
   display: none;
 }
 
-body.loggedIn .header ul li [data-css-ui-vis-state="when-logged-in"]{
+body.loggedIn .menu [data-css-ui-vis-state="when-logged-in"]{
   display: inline-block;
-}
-
-body.loggedIn .header ul li.loggedOut{
-  display: none;
 }
 
 .header .logo{
