@@ -44,12 +44,12 @@ const renewToken = (currentToken: SessionToken) => {
 
     try {
       const result = await requests.makeRequest({
-        method: 'PUT',
-        path: 'api/tokens',
         headers: [
           {name: 'phone', value: currentToken.phone},
           {name: 'token', value: currentToken.id},
         ],
+        method: 'PUT',
+        path: 'api/tokens',
         payload,
       });
 
@@ -86,12 +86,12 @@ const logoutHandler = async () => {
 
   try {
     await requests.makeRequest({
-      method: 'DELETE',
-      path: `/api/tokens`,
       headers: [
         {name: 'token', value: token.id},
         {name: 'phone', value: token.phone},
       ],
+      method: 'DELETE',
+      path: `/api/tokens`,
     });
 
     setToken();
