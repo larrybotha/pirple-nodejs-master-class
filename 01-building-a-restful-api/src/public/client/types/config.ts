@@ -1,6 +1,12 @@
+interface SessionToken {
+  expires: number;
+  id: string;
+  phone: string;
+}
+
 interface Config {
-  sessionToken: null | {id: string};
+  sessionToken: null | SessionToken;
   [key: string]: any;
 }
 
-export {Config};
+export {Config, SessionToken};
