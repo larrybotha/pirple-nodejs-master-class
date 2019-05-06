@@ -1,13 +1,13 @@
 import {configs} from './config';
 import {requests} from './requests';
-import {Config} from './types/config';
+import {Config, SessionToken} from './types/config';
 
 // Get the session token from localstorage and set it in the config object
 const performSessionSideEffects = () => {
-  const tokenId = localStorage.getItem('tokenId');
+  const token = JSON.parse(localStorage.getItem('token'));
 
-  if (tokenId) {
-    configs.set('sessionToken', tokenId);
+  if (token) {
+    configs.set('sessionToken', token);
     setLoggedInClass(true);
   } else {
     setLoggedInClass(false);
@@ -26,29 +26,34 @@ const setLoggedInClass = (add: boolean) => {
 };
 
 // Set the session token in the config object as well as localstorage
-const setToken = (tokenId?: string) => {
-  localStorage.setItem('tokenId', tokenId);
+const setToken = (token?: SessionToken) => {
+  if (token) {
+    localStorage.setItem('token', JSON.stringify(token));
+  } else {
+    localStorage.removeItem('token');
+  }
 
   performSessionSideEffects();
 };
 
 // Renew the token
-const renewToken = (currentToken: Config['sessionToken']) => {
+const renewToken = (currentToken: SessionToken) => {
   return new Promise(async (resolve, reject) => {
     // Update the token with a new expiration
-    const payload = {
-      extend: true,
-      id: currentToken.id,
-    };
+    const payload = {extend: true};
 
     try {
       const result = await requests.makeRequest({
-        method: 'PATCH',
+        method: 'PUT',
         path: 'api/tokens',
+        headers: [
+          {name: 'phone', value: currentToken.phone},
+          {name: 'token', value: currentToken.id},
+        ],
         payload,
       });
 
-      setToken(result.id);
+      setToken(result);
       resolve();
     } catch (err) {
       setToken();
@@ -77,16 +82,21 @@ const startTokenRenewalLoop = () => {
 };
 
 const logoutHandler = async () => {
-  const id = configs.get('sessionToken');
+  const token = configs.get('sessionToken');
 
   try {
     await requests.makeRequest({
       method: 'DELETE',
-      path: `/api/tokens/${id}`,
-      headers: [{name: 'token', value: id}],
+      path: `/api/tokens`,
+      headers: [
+        {name: 'token', value: token.id},
+        {name: 'phone', value: token.phone},
+      ],
     });
 
+    setToken();
     window.location.replace('/sessions/delete');
+    performSessionSideEffects();
   } catch (err) {
     alert(err);
   }
