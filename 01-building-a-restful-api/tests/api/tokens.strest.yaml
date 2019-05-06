@@ -81,7 +81,7 @@ requests:
       postData:
         mimeType: 'application/json'
         text:
-          extend: 'true'
+          extend: true
     validate:
       - jsonpath: status
         expect: 200
@@ -139,6 +139,19 @@ requests:
         expect: 401
 
   # start cleanup
+  tokens_delete:
+    request:
+      url: '<$ baseUrl $>/<$ endpoint $>'
+      method: DELETE
+      headers:
+        - name: phone
+          value: <$ tokens_user_create.content.phone $>
+        - name: token
+          value: <$ tokens_create.content.id $>
+    validate:
+      - jsonpath: status
+        expect: 204
+
   tokens_user_delete:
     request:
       url: '<$ baseUrl $>/users/<$ tokens_user_create.content.phone $>/'
