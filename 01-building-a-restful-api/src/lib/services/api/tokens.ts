@@ -178,7 +178,7 @@ const tokenMethods: {[key: string]: Handler} = {
 
     const extend = [payload.extend]
       .map(exists('extend is required'))
-      .map(equals('true', 'extend must be true'))
+      .map(equals(true, 'extend must be true'))
       .find(Boolean);
 
     if (tokenId && !extend.error) {
