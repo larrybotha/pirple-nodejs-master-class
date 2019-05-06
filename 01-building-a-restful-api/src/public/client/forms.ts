@@ -1,3 +1,4 @@
+import {configs} from './config';
 import {requests} from './requests';
 import {session} from './session';
 
@@ -24,10 +25,24 @@ const bindForms = () => {
 
           return {...acc, [elem.name]: value};
         }, {});
+      const token = configs.get('SessionToken');
+      const headers = token
+        ? [
+            {
+              name: 'phone',
+              value: token.phone,
+            },
+            {
+              name: 'token',
+              value: token.id,
+            },
+          ]
+        : [];
 
       // Call the API
       try {
         const result = await requests.makeRequest({
+          headers,
           method,
           path,
           payload,
@@ -69,7 +84,7 @@ const handleSuccessfulAccountCreation: ResponseProcessor = async ({
       payload: newPayload,
     });
 
-    session.setToken(result.id);
+    session.setToken(result);
     window.location.replace('/checks/all');
   } catch (err) {
     formErrorEl.innerHTML = 'Sorry, an error has occured. Please try again.';
@@ -80,7 +95,7 @@ const handleSuccessfulAccountCreation: ResponseProcessor = async ({
 const handleSuccessfulTokenCreation: ResponseProcessor = ({
   responsePayload,
 }) => {
-  session.setToken(responsePayload.id);
+  session.setToken(responsePayload);
   window.location.replace('/checks/all');
 };
 
