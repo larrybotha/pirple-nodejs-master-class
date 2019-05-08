@@ -1,5 +1,6 @@
 import {configs} from './config';
 import {forms} from './forms';
+import {loadDataOnPage} from './load';
 import {requests} from './requests';
 import {session} from './session';
 
@@ -18,4 +19,5 @@ window.addEventListener('load', () => {
 
   session.startTokenRenewalLoop();
   session.bindLogoutHandler();
+  loadDataOnPage();
 });
