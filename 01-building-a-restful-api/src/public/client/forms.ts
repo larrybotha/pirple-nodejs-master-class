@@ -4,56 +4,58 @@ import {session} from './session';
 
 // Bind the forms
 const bindForms = () => {
-  const formEl = document.querySelector('form');
+  const formEls = document.querySelectorAll('form');
 
-  if (formEl) {
-    formEl.addEventListener('submit', async e => {
-      e.preventDefault();
-      const form = e.target as HTMLFormElement;
-      const {action: path, elements, id, method: m} = form;
-      const method = m.toUpperCase();
-      const formErrorEl = form.querySelector('.formError') as HTMLElement;
+  if (formEls) {
+    [].slice.call(formEls).map((formEl: HTMLFontElement) => {
+      formEl.addEventListener('submit', async e => {
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const {action: path, elements, id, method: m} = form;
+        const method = m.toUpperCase();
+        const formErrorEl = form.querySelector('.formError') as HTMLElement;
 
-      // Hide the error message (if it's currently shown due to a previous error)
-      formErrorEl.style.display = 'none';
+        // Hide the error message (if it's currently shown due to a previous error)
+        formErrorEl.style.display = 'none';
 
-      // Turn the inputs into a payload
-      const payload = [...elements]
-        .filter((elem: HTMLFormElement) => elem.type !== 'submit')
-        .reduce((acc: object, elem: HTMLFormElement) => {
-          const value = elem.type === 'checkbox' ? elem.checked : elem.value;
+        // Turn the inputs into a payload
+        const payload = [...elements]
+          .filter((elem: HTMLFormElement) => elem.type !== 'submit')
+          .reduce((acc: object, elem: HTMLFormElement) => {
+            const value = elem.type === 'checkbox' ? elem.checked : elem.value;
 
-          return {...acc, [elem.name]: value};
-        }, {});
-      const token = configs.get('SessionToken');
-      const headers = token
-        ? [
-            {
-              name: 'phone',
-              value: token.phone,
-            },
-            {
-              name: 'token',
-              value: token.id,
-            },
-          ]
-        : [];
+            return {...acc, [elem.name]: value};
+          }, {});
+        const token = configs.get('SessionToken');
+        const headers = token
+          ? [
+              {
+                name: 'phone',
+                value: token.phone,
+              },
+              {
+                name: 'token',
+                value: token.id,
+              },
+            ]
+          : [];
 
-      // Call the API
-      try {
-        const result = await requests.makeRequest({
-          headers,
-          method,
-          path,
-          payload,
-        });
+        // Call the API
+        try {
+          const result = await requests.makeRequest({
+            headers,
+            method,
+            path,
+            payload,
+          });
 
-        responseProcessor({id, payload, responsePayload: result});
-      } catch (err) {
-        formErrorEl.style.display = 'inherit';
-        formErrorEl.innerHTML = JSON.stringify(err, null, 2);
-        // responseProcessor({id, payload, responsePayload: err});
-      }
+          responseProcessor({id, payload, responsePayload: result});
+        } catch (err) {
+          formErrorEl.style.display = 'inherit';
+          formErrorEl.innerHTML = JSON.stringify(err, null, 2);
+          // responseProcessor({id, payload, responsePayload: err});
+        }
+      });
     });
   }
 };
