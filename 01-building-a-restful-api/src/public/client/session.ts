@@ -81,7 +81,7 @@ const startTokenRenewalLoop = () => {
   }, 1000 * 60);
 };
 
-const logoutHandler = async () => {
+const logout = async () => {
   const token = configs.get('sessionToken');
 
   try {
@@ -106,12 +106,13 @@ const bindLogoutHandler = () => {
   const logoutBtn = document.querySelector('.js-logout-btn');
 
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', logoutHandler);
+    logoutBtn.addEventListener('click', logout);
   }
 };
 
 const session = {
   bindLogoutHandler,
+  logout,
   performSessionSideEffects,
   renewToken,
   setToken,
