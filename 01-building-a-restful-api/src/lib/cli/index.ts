@@ -1,12 +1,9 @@
-import EventEmitter from 'events';
 import * as readline from 'readline';
 import {debuglog} from 'util';
 
+import {events} from './events';
+
 const debug = debuglog('cli');
-
-class CliEventEmitter extends EventEmitter {}
-
-const eventEmitter = new CliEventEmitter();
 
 type ProcessInput = (str: string) => void;
 const processInput: ProcessInput = str => {
@@ -37,7 +34,7 @@ const processInput: ProcessInput = str => {
     });
 
     if (userInput) {
-      eventEmitter.emit(userInput, sanitizedString);
+      events.emit(userInput, sanitizedString);
     } else {
       // tslint:disable-next-line
       console.log(`unknown command ${sanitizedString}`);
