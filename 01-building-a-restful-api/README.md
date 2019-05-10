@@ -22,6 +22,8 @@
 - [Twilio helper](#twilio-helper)
 - [Logging to the filesystem](#logging-to-the-filesystem)
 - [Logging to the console](#logging-to-the-console)
+- [Creating event emitters](#creating-event-emitters)
+- [Reading input from the command line](#reading-input-from-the-command-line)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -266,3 +268,53 @@ try {
 
     debug('log this message');
     ```
+
+## Creating event emitters
+
+Node requires that one extends the `EventEmitter` class to create an event
+emitter:
+
+```javascript
+const EventEmitter = require('events');
+
+class MyEventEmitter extends EventEmitter {};
+
+const eventEmitter = new MyEventEmitter();
+```
+
+## Reading input from the command line
+
+Node's `readline` module allows for creating interfaces for reading data from
+Readable streams.
+
+`stdin` is just such a readable stream, and is how we'll get data via command
+line input.
+
+An interface for reading and writing needs to be created:
+
+```javascript
+const readline = require('readline');
+
+const myInterface = readline.createInterface({
+  // readable stream
+  input: process.stdin,
+  // writable stream
+  output: process.stdout,
+  prompt: '',
+})
+
+// create a prompt for the user
+myInterface.prompt();
+```
+
+In order to handle input, we need to bind a listener to the `line` event:
+
+```javascript
+myInterface.on('line', lineEventHandler);
+```
+
+We also need to handle the user killing the session:
+
+```javascript
+myInterface.on('exit', () => process.exit(0));
+```
