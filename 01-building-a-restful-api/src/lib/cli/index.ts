@@ -16,16 +16,16 @@ const processInput: ProcessInput = str => {
 
   if (sanitizedString) {
     const validInputs = [
-      'man',
-      'help',
       'exit',
-      'stats',
-      'list users',
-      'more user info',
+      'help',
       'list checks',
-      'more check info',
       'list logs',
+      'list users',
+      'man',
+      'more check info',
       'more log info',
+      'more user info',
+      'stats',
     ];
     const userInput = validInputs.find(input => {
       const regex = new RegExp(input);
