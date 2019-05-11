@@ -24,6 +24,9 @@
 - [Logging to the console](#logging-to-the-console)
 - [Creating event emitters](#creating-event-emitters)
 - [Reading input from the command line](#reading-input-from-the-command-line)
+- [Outputting to stdout](#outputting-to-stdout)
+- [Getting OS information](#getting-os-information)
+- [Getting V8 information](#getting-v8-information)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -317,4 +320,41 @@ We also need to handle the user killing the session:
 
 ```javascript
 myInterface.on('exit', () => process.exit(0));
+```
+
+## Outputting to stdout
+
+To get the width of stdout:
+
+```javascript
+const {columns} = process.stdout;
+```
+
+## Getting OS information
+
+OS-level information can be obtained by importing the `os` module:
+
+```javascript
+const {freemem, cpus, loadavg, uptime,} = require('os');
+
+freemem()
+cpus()
+loadavg()
+uptime()
+```
+
+## Getting V8 information
+
+We can even get information regarding Node's V8 engine:
+
+```javascript
+const {getHeapStatistics} = require('v8');
+const {
+  malloced_memory,
+  peak_malloced_memory,
+  used_heap_size,
+  total_heap_size,
+  heap_size_limit,
+  ...rest,
+} = getHeapStatistics();
 ```
