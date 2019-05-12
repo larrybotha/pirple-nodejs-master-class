@@ -1,6 +1,6 @@
 import {configs} from './config';
 import {requests} from './requests';
-import {Config, SessionToken} from './types/config';
+import {SessionToken} from './types/config';
 
 // Get the session token from localstorage and set it in the config object
 const performSessionSideEffects = () => {

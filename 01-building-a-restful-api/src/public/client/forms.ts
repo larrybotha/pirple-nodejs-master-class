@@ -70,7 +70,6 @@ type ResponseProcessor = (options: ResponseProcessorParams) => void;
 const handleSuccessfulAccountCreation: ResponseProcessor = async ({
   id,
   payload,
-  responsePayload,
 }) => {
   const newPayload = {
     password: payload.password,

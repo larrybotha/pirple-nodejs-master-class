@@ -1,15 +1,6 @@
-import {configs} from './config';
 import {forms} from './forms';
 import {loadDataOnPage} from './load';
-import {requests} from './requests';
 import {session} from './session';
-
-const app = {
-  configs,
-  forms,
-  requests,
-  session,
-};
 
 // Call the init processes after the window loads
 window.addEventListener('load', () => {

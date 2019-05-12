@@ -16,7 +16,7 @@ const makeRequest = ({
   ...rest
 }: RequestOptions): Promise<any> => {
   return new Promise((resolve, reject) => {
-    const {callback, method, path, payload, sessionToken} = rest;
+    const {method, path, payload, sessionToken} = rest;
     const xhr = new XMLHttpRequest();
     const qs = createQueryString(queryStringObject);
     const requestUrl = `${path}${qs}`;
