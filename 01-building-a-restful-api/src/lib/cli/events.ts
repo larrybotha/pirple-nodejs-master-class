@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as v8 from 'v8';
 
 import {User} from '../types/services/users';
+import {Check, CheckState} from '../types/services/checks';
 import {
   centeredText,
   horizontalLine,
@@ -86,8 +87,7 @@ const handleListUsers: EventListener = async () => {
 };
 
 const handleMoreUserInfo: EventListener = async cmd => {
-  const userId = cmd
-    .match(/--\w+/)
+  const userId = (cmd.match(/--\w+/) || [])
     .map(s => s.replace('--', ''))
     .find(Boolean);
 
@@ -108,8 +108,48 @@ const handleMoreUserInfo: EventListener = async cmd => {
   }
 };
 
-const handleListChecks: EventListener = () => {};
-const handleMoreCheckInfo: EventListener = () => {};
+const handleListChecks: EventListener = async cmd => {
+  const param = (cmd.match(/--\w+/) || [])
+    .map(s => s.replace('--', ''))
+    .filter(s => /up|down/.test(s))
+    .map(s => [s[0].toUpperCase(), s.slice(1)].join(''))
+    .find(Boolean);
+  const state = param ? CheckState[param as any] : '';
+
+  try {
+    const checks: Check[] = await dataLib.list('checks');
+    const filteredChecks = state
+      ? checks.filter(check => check.state === state)
+      : checks;
+
+    console.dir(filteredChecks, {colors: true});
+  } catch (err) {
+    // tslint:disable-next-line
+    console.log('unable to list checks', err);
+  }
+};
+
+const handleMoreCheckInfo: EventListener = async cmd => {
+  const checkId = (cmd.match(/--\w+/) || [])
+    .map(s => s.replace('--', ''))
+    .find(Boolean);
+
+  if (checkId) {
+    try {
+      const check: Check = await dataLib.read('checks', checkId);
+
+      // tslint:disable-next-line
+      console.dir(check, {colors: true});
+    } catch (err) {
+      // tslint:disable-next-line
+      console.log('Check not found');
+    }
+  } else {
+    // tslint:disable-next-line
+    console.log('no --userId param provided');
+  }
+};
+
 const handleListLogs: EventListener = () => {};
 const handleMoreLogInfo: EventListener = () => {};
 
