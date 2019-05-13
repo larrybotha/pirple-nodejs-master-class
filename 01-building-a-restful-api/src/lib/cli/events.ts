@@ -85,7 +85,29 @@ const handleListUsers: EventListener = async () => {
   }
 };
 
-const handleMoreUserInfo: EventListener = () => {};
+const handleMoreUserInfo: EventListener = async cmd => {
+  const userId = cmd
+    .match(/--\w+/)
+    .map(s => s.replace('--', ''))
+    .find(Boolean);
+
+  if (userId) {
+    try {
+      const user: User = await dataLib.read('users', userId);
+      delete user.password;
+
+      // tslint:disable-next-line
+      console.dir(user, {colors: true});
+    } catch (err) {
+      // tslint:disable-next-line
+      console.log('User not found');
+    }
+  } else {
+    // tslint:disable-next-line
+    console.log('no --userId param provided');
+  }
+};
+
 const handleListChecks: EventListener = () => {};
 const handleMoreCheckInfo: EventListener = () => {};
 const handleListLogs: EventListener = () => {};
