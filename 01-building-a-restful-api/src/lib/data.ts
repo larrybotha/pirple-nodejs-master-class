@@ -43,9 +43,9 @@ const create: Create = async (dir, file, data) => {
   }
 };
 
-type Read = (dir: string, file: string) => Promise<any>;
+type Read = (dir: string, file: string, ext?: string) => Promise<any>;
 const read: Read = async (dir, file, ext = '.json') => {
-  const filePath = getFilePath({base: baseDir, dir, file});
+  const filePath = getFilePath({base: baseDir, dir, file, ext});
 
   try {
     const result = await asyncRead(filePath, 'utf8');
@@ -92,7 +92,7 @@ const patch: Patch = async (dir, file, data) => {
 
 type Delete = (dir: string, file: string) => Promise<void>;
 const deleteFile: Delete = async (dir, file) => {
-  const filePath = getFilePath(baseDir, dir, file);
+  const filePath = getFilePath({base: baseDir, dir, file});
 
   try {
     await asyncUnlink(filePath);
@@ -103,7 +103,7 @@ const deleteFile: Delete = async (dir, file) => {
 
 type List = (
   dir: string,
-  ext: string,
+  ext?: string,
   filterConditions?: {[key: string]: (v: any) => boolean}
 ) => Promise<any[]>;
 const list: List = async (dir, ext = '.json', filterConditions = {}) => {
@@ -122,7 +122,7 @@ const list: List = async (dir, ext = '.json', filterConditions = {}) => {
   }
 
   const allData = await Promise.all(
-    trimmedFilenames.map(async f => await read(dir, f))
+    trimmedFilenames.map(async f => await read(dir, f, ext))
   );
   const data = allData.filter(d => {
     const isValid = filterKeys.length
