@@ -14,12 +14,21 @@ const asyncReaddir = promisify(fs.readdir);
 
 const baseDir = path.join(__dirname, '../../../.data');
 
-const getFilePath = (base: string, dir: string, file: string) =>
-  path.join(base, dir, `${file}.json`);
+const getFilePath = ({
+  base,
+  dir,
+  ext = '.json',
+  file,
+}: {
+  base: string;
+  dir: string;
+  ext?: string;
+  file: string;
+}) => path.join(base, dir, `${file}${ext}`);
 
 type Create = (dir: string, file: string, data: any) => Promise<any>;
 const create: Create = async (dir, file, data) => {
-  const filePath = getFilePath(baseDir, dir, file);
+  const filePath = getFilePath({base: baseDir, dir, file});
 
   try {
     // create the file
@@ -35,8 +44,8 @@ const create: Create = async (dir, file, data) => {
 };
 
 type Read = (dir: string, file: string) => Promise<any>;
-const read: Read = async (dir, file) => {
-  const filePath = getFilePath(baseDir, dir, file);
+const read: Read = async (dir, file, ext = '.json') => {
+  const filePath = getFilePath({base: baseDir, dir, file});
 
   try {
     const result = await asyncRead(filePath, 'utf8');
@@ -49,7 +58,7 @@ const read: Read = async (dir, file) => {
 
 type Update = (dir: string, file: string, data: any) => Promise<any>;
 const update: Update = async (dir, file, data) => {
-  const filePath = getFilePath(baseDir, dir, file);
+  const filePath = getFilePath({base: baseDir, dir, file});
 
   try {
     const fileDescriptor = await asyncOpen(filePath, 'r+');
@@ -65,7 +74,7 @@ const update: Update = async (dir, file, data) => {
 
 type Patch = (dir: string, file: string, data: any) => Promise<any>;
 const patch: Patch = async (dir, file, data) => {
-  const filePath = getFilePath(baseDir, dir, file);
+  const filePath = getFilePath({base: baseDir, dir, file});
 
   try {
     const fileDescriptor = await asyncOpen(filePath, 'r+');
@@ -94,18 +103,20 @@ const deleteFile: Delete = async (dir, file) => {
 
 type List = (
   dir: string,
+  ext: string,
   filterConditions?: {[key: string]: (v: any) => boolean}
 ) => Promise<any[]>;
-const list: List = async (dir, filterConditions = {}) => {
+const list: List = async (dir, ext = '.json', filterConditions = {}) => {
   let trimmedFilenames: string[] = [];
   const filterKeys = Object.keys(filterConditions);
 
   try {
     const result = await asyncReaddir(path.join(baseDir, dir));
+    const regex = new RegExp(ext);
 
     trimmedFilenames = result
-      .filter(f => /\.json/.test(f))
-      .map(f => f.replace('.json', ''));
+      .filter(f => regex.test(f))
+      .map(f => f.replace(ext, ''));
   } catch (err) {
     throw err;
   }
