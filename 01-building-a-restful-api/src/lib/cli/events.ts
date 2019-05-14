@@ -2,8 +2,8 @@ import EventEmitter from 'events';
 import * as os from 'os';
 import * as v8 from 'v8';
 
-import {User} from '../types/services/users';
 import {Check, CheckState} from '../types/services/checks';
+import {User} from '../types/services/users';
 import {
   centeredText,
   horizontalLine,
@@ -22,15 +22,16 @@ type EventListener = (str: string) => void;
 const handleHelp: EventListener = () => {
   const commandMap = {
     exit: 'Kill CLI and app',
-    man: 'show this help',
     help: 'alias of "man"',
+    man: 'show this help',
     stats: 'get OS stats and utilisation',
-    'list users': 'show list of registered users',
-    'more user info --{userId}': 'show details of specific user',
+
     'list checks --[up|down]': 'show a list of active checks',
-    'more check info --{checkId}': 'show details of specific check',
     'list logs': 'show a list of all logs',
+    'list users': 'show list of registered users',
+    'more check info --{checkId}': 'show details of specific check',
     'more log info --{filename}': 'show details of a specific log',
+    'more user info --{userId}': 'show details of specific user',
   };
 
   logObjectToStdOut(commandMap, 'CLI MANUAL');
@@ -49,17 +50,17 @@ const handleStats: EventListener = () => {
     heap_size_limit,
   } = v8.getHeapStatistics();
   const statsMap = {
-    'Load Average': os.loadavg().join(' '),
-    'CPU Count': os.cpus().length,
-    'Free Memory': os.freemem(),
-    'Current Malloced Memory': malloced_memory,
-    'Peak Malloced Memory': peak_malloced_memory,
     'Allocated Heap Used (%)': Math.round(
       (used_heap_size / total_heap_size) * 100
     ),
     'Available Heap Allocated (%)': Math.round(
       (total_heap_size / heap_size_limit) * 100
     ),
+    'CPU Count': os.cpus().length,
+    'Current Malloced Memory': malloced_memory,
+    'Free Memory': os.freemem(),
+    'Load Average': os.loadavg().join(' '),
+    'Peak Malloced Memory': peak_malloced_memory,
     Update: `${os.uptime()}s`,
   };
 
@@ -122,6 +123,7 @@ const handleListChecks: EventListener = async cmd => {
       ? checks.filter(check => check.state === state)
       : checks;
 
+    // tslint:disable-next-line
     console.dir(filteredChecks, {colors: true});
   } catch (err) {
     // tslint:disable-next-line
@@ -154,6 +156,7 @@ const handleListLogs: EventListener = async () => {
   try {
     const logs = await dataLib.list('../.logs', '.log');
 
+    // tslint:disable-next-line
     console.dir(logs, {colors: true});
   } catch (err) {
     // tslint:disable-next-line
@@ -161,7 +164,26 @@ const handleListLogs: EventListener = async () => {
   }
 };
 
-const handleMoreLogInfo: EventListener = () => {};
+const handleMoreLogInfo: EventListener = async cmd => {
+  const logId = (cmd.match(/--\w+/) || [])
+    .map(s => s.replace('--', ''))
+    .find(Boolean);
+
+  if (logId) {
+    try {
+      const log = await dataLib.read('../.logs', logId, '.log');
+
+      // tslint:disable-next-line
+      console.dir(log, {colors: true});
+    } catch (err) {
+      // tslint:disable-next-line
+      console.log('Log not found');
+    }
+  } else {
+    // tslint:disable-next-line
+    console.log('no --{logId} param provided');
+  }
+};
 
 events.on('man', handleHelp);
 events.on('help', handleHelp);
