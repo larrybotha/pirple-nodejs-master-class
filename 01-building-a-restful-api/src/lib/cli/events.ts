@@ -150,7 +150,17 @@ const handleMoreCheckInfo: EventListener = async cmd => {
   }
 };
 
-const handleListLogs: EventListener = () => {};
+const handleListLogs: EventListener = async () => {
+  try {
+    const logs = await dataLib.list('../.logs', '.log');
+
+    console.dir(logs, {colors: true});
+  } catch (err) {
+    // tslint:disable-next-line
+    console.log(err);
+  }
+};
+
 const handleMoreLogInfo: EventListener = () => {};
 
 events.on('man', handleHelp);
