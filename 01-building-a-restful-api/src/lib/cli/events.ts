@@ -12,6 +12,7 @@ import {
 } from './helpers';
 
 import dataLib from '../data';
+import logsLib from '../logs';
 
 class CliEventEmitter extends EventEmitter {}
 
@@ -154,7 +155,7 @@ const handleMoreCheckInfo: EventListener = async cmd => {
 
 const handleListLogs: EventListener = async () => {
   try {
-    const logs = await dataLib.list('../.logs', '.log');
+    const logs = await logsLib.list(true);
 
     // tslint:disable-next-line
     console.dir(logs, {colors: true});
