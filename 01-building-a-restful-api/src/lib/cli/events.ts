@@ -156,9 +156,10 @@ const handleMoreCheckInfo: EventListener = async cmd => {
 const handleListLogs: EventListener = async () => {
   try {
     const logs = await logsLib.list(true);
+    const compressedLogs = logs.filter(log => !/\.log$/.test(log));
 
     // tslint:disable-next-line
-    console.dir(logs, {colors: true});
+    console.dir(compressedLogs, {colors: true});
   } catch (err) {
     // tslint:disable-next-line
     console.log(err);
@@ -166,16 +167,16 @@ const handleListLogs: EventListener = async () => {
 };
 
 const handleMoreLogInfo: EventListener = async cmd => {
-  const logId = (cmd.match(/--\w+/) || [])
-    .map(s => s.replace('--', ''))
+  const logId = (cmd.match(/--.+/) || [])
+    .map(s => s.replace(/^--/, ''))
     .find(Boolean);
 
   if (logId) {
     try {
-      const log = await dataLib.read('../.logs', logId, '.log');
+      const log = await logsLib.decompress(logId);
 
       // tslint:disable-next-line
-      console.dir(log, {colors: true});
+      console.dir(JSON.parse(log), {colors: true});
     } catch (err) {
       // tslint:disable-next-line
       console.log('Log not found');

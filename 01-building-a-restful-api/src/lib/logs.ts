@@ -107,21 +107,18 @@ const decompress: Decompress = async fileId => {
  * Retrieve a list of log file ids
  *
  * @param includeCompressedLogs {boolean} - include compressed log files in result
- * @return logIds {string[]} - an array of log ids
+ * @return logFiles {string[]} - an array of log filenames
  */
 type List = (includeCompressedLogs?: boolean) => Promise<string[]>;
 const list: List = async (includeCompressedLogs = false) => {
   try {
     const fileNames = await asyncReaddir(baseDir);
-    const logIds = fileNames
-      .filter(
-        fn =>
-          /\.log$/.test(fn) || (includeCompressedLogs && /\.gz\.b64$/.test(fn))
-      )
-      .map(fn => fn.replace(/\.log$/, ''))
-      .map(fn => fn.replace(/\.gz\.b64/, ''));
+    const logFiles = fileNames.filter(
+      fn =>
+        /\.log$/.test(fn) || (includeCompressedLogs && /\.gz\.b64$/.test(fn))
+    );
 
-    return logIds;
+    return logFiles;
   } catch (err) {
     throw err;
   }
