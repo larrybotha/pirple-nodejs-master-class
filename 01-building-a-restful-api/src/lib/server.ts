@@ -44,7 +44,7 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
     buffer += decoder.write(data);
   });
 
-  req.on('end', () => {
+  req.on('end', async () => {
     // make sure to write any data coming through in the `end` event to our buffer
     buffer += decoder.end();
 
@@ -58,34 +58,40 @@ const unifiedServer = (req: http.IncomingMessage, res: http.ServerResponse) => {
       query,
     };
 
-    handler(
-      data,
-      (statusCode = 200, responseData, contentType = 'application/json') => {
-        const response = responseData || getDefaultResponseData(contentType);
+    try {
+      await handler(
+        data,
+        (statusCode = 200, responseData, contentType = 'application/json') => {
+          const response = responseData || getDefaultResponseData(contentType);
 
-        // indicate to clients that the response is json
-        res.setHeader('Content-type', contentType);
+          // indicate to clients that the response is json
+          res.setHeader('Content-type', contentType);
 
-        // set the status code for the request
-        res.writeHead(statusCode);
+          // set the status code for the request
+          res.writeHead(statusCode);
 
-        // return the responseData as a string
-        res.end(
-          typeof response === 'string' || /image/.test(contentType)
-            ? response
-            : JSON.stringify(response)
-        );
+          // return the responseData as a string
+          res.end(
+            typeof response === 'string' || /image/.test(contentType)
+              ? response
+              : JSON.stringify(response)
+          );
 
-        const logColour = /^2/.test(`${statusCode}`)
-          ? '\x1b[32m%s\x1b[0m'
-          : '\x1b[31m%s\x1b[0m';
+          const logColour = /^2/.test(`${statusCode}`)
+            ? '\x1b[32m%s\x1b[0m'
+            : '\x1b[31m%s\x1b[0m';
 
-        debug(
-          logColour,
-          `${method.toUpperCase()}/${trimmedPath} ${statusCode}`
-        );
-      }
-    );
+          debug(
+            logColour,
+            `${method.toUpperCase()}/${trimmedPath} ${statusCode}`
+          );
+        }
+      );
+    } catch (err) {
+      res.writeHead(500);
+
+      res.end(JSON.stringify(err));
+    }
   });
 };
 
