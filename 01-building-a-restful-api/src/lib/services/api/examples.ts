@@ -3,7 +3,7 @@ import {Handler} from '../../types';
 import {createServiceRouter} from '../utils';
 
 const examplesMethods: {[key: string]: Handler} = {
-  get: async () => {
+  get: () => {
     throw new Error('error');
   },
 };
