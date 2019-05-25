@@ -1,9 +1,7 @@
-import * as http from 'http';
-
 import config from '../../../config';
 import dataLib from '../../data';
 import helpers from '../../helpers';
-import {Handler, RequestData} from '../../types';
+import {Handler} from '../../types';
 import {Check} from '../../types/services/checks';
 import {User} from '../../types/services/users';
 import {Invalid, Valid} from '../../validations';

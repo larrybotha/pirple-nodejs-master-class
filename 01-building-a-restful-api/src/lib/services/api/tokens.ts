@@ -1,8 +1,6 @@
-import * as http from 'http';
-
 import dataLib from '../../data';
 import helpers from '../../helpers';
-import {Handler, RequestData} from '../../types';
+import {Handler} from '../../types';
 import {Token} from '../../types/services/tokens';
 import {User} from '../../types/services/users';
 import {equals, exists} from '../../validations';
@@ -39,7 +37,7 @@ const getTokenIdFromPath = (path: string): string => {
   return parts.length === 3 ? parts.slice(-1).find(Boolean) : '';
 };
 
-const tokenMethods: {[key: string]: Handler} = {
+const tokenMethods: TokenMethods = {
   /*
    * required: id
    * optional: none
