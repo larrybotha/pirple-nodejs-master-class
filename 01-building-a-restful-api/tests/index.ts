@@ -1,6 +1,4 @@
-import * as assert from 'assert';
-
-const getANumber = () => 1;
+import {unit} from './unit';
 
 interface Tests {
   [key: string]: {
@@ -8,30 +6,7 @@ interface Tests {
   };
 }
 const tests: Tests = {
-  unit: {},
-};
-
-type Done = () => void;
-
-tests.unit['getANumber should return a number'] = (done: Done) => {
-  const result = getANumber();
-
-  assert.equal(typeof result, 'number');
-  done();
-};
-
-tests.unit['getANumber should returns 1'] = (done: Done) => {
-  const result = getANumber();
-
-  assert.equal(result, 1);
-  done();
-};
-
-tests.unit['getANumber should returns 2'] = (done: Done) => {
-  const result = getANumber();
-
-  assert.equal(result, 2);
-  done();
+  unit,
 };
 
 const run = () => {
