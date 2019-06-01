@@ -384,4 +384,5 @@ const isResolvable = async url => {
 }
 ```
 
-If URL can't be resolved, `dns.resolve` will throw an error.
+If URL can't be resolved, `dns.resolve` will throw an error, otherwise an array
+of IP addresses will be returned for the URL.
