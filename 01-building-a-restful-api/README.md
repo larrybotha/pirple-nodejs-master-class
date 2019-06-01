@@ -27,6 +27,7 @@
 - [Outputting to stdout](#outputting-to-stdout)
 - [Getting OS information](#getting-os-information)
 - [Getting V8 information](#getting-v8-information)
+- [DNS validating urls](#dns-validating-urls)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -358,3 +359,29 @@ const {
   ...rest,
 } = getHeapStatistics();
 ```
+
+## DNS validating urls
+
+In an app that checks the status of a URL, it's a good practice to ensure that
+the URL provided by the user can in fact be resolved.
+
+To do this, Node's `dns` module can be used:
+
+```javascript
+const dns = require('dns')
+const {promisify} = require('util')
+
+const asyncResolve = promisify(dns.resolve);
+
+const isResolvable = async url => {
+  try {
+    await asyncResolve(url);
+  } catch(err) {
+    return false;
+  }
+
+  return true;
+}
+```
+
+If URL can't be resolved, `dns.resolve` will throw an error.
