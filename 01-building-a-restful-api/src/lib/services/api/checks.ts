@@ -1,3 +1,7 @@
+import * as dns from 'dns';
+import * as urlLib from 'url';
+import {promisify} from 'util';
+
 import config from '../../../config';
 import dataLib from '../../data';
 import helpers from '../../helpers';
@@ -17,6 +21,7 @@ import {
 } from '../validations/checks';
 
 const checksConfig = config.services.checks;
+const asyncDnsResolve = promisify(dns.resolve);
 
 interface PayloadRequiredParams {
   method: Check['method'];
@@ -142,6 +147,16 @@ const checksMethods: ChecksMethods = {
         const userCheckIds: Array<Check['id']> = user.checks || [];
 
         if (userCheckIds.length < checksConfig.maxChecks) {
+          // before creating a check, determine whether the URL provided is even reachable
+          const parsedUrl = urlLib.parse(`${protocol}://${url}`, true);
+          const {hostname} = parsedUrl;
+
+          try {
+            await asyncDnsResolve(hostname);
+          } catch (err) {
+            return cb(400, {error: `unable to resolve url ${url}`});
+          }
+
           const checkId = helpers.createRandomString(20);
           const checkData: Check = {
             id: checkId,
