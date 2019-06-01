@@ -165,6 +165,27 @@ requests:
     validate:
       - jsonpath: status
         expect: 400
+
+  checks_create_unresolvable_url:
+    request:
+      url: '<$ baseUrl $>/<$ endpoint $>'
+      method: POST
+      headers:
+        - name: phone
+          value: <$ checks_user_create.content.phone $>
+        - name: token
+          value: <$ checks_token_create.content.id $>
+      postData:
+        mimeType: 'application/json'
+        text:
+          protocol: 'https'
+          url: 'some-url-that-cant-resolve.com'
+          method: 'get'
+          successCodes: [200]
+          timeoutSeconds: 4
+    validate:
+      - jsonpath: status
+        expect: 400
   # end bad requests
 
   # start cleanup
