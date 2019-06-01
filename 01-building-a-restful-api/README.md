@@ -28,6 +28,7 @@
 - [Getting OS information](#getting-os-information)
 - [Getting V8 information](#getting-v8-information)
 - [DNS validating urls](#dns-validating-urls)
+- [Performance measurement](#performance-measurement)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -386,3 +387,26 @@ const isResolvable = async url => {
 
 If URL can't be resolved, `dns.resolve` will throw an error, otherwise an array
 of IP addresses will be returned for the URL.
+
+## Performance measurement
+
+To measure performance, Node provides a `perf_hooks` module:
+
+```javascript
+const {performance, PerformanceObserver} = require('perf_hooks');
+
+const performanceObserver = new PerformanceObserver((items, observer) => {
+  const entries = items.getEntriesByType('measure');
+
+  entries.map(entry => console.log(entry));
+
+  observer.disconnect();
+});
+performanceObserver.observe({entryTypes: ['measure']});
+
+performance.mark('start');
+// do work
+performance.mark('end');
+
+performance.measure('work done', 'start', 'end');
+```
