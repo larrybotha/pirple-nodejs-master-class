@@ -29,6 +29,7 @@
 - [Getting V8 information](#getting-v8-information)
 - [DNS validating urls](#dns-validating-urls)
 - [Performance measurement](#performance-measurement)
+- [Clusters](#clusters)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -409,4 +410,27 @@ performance.mark('start');
 performance.mark('end');
 
 performance.measure('work done', 'start', 'end');
+```
+
+## Clusters
+
+We can serve requests using all cores of the current machine. Node provides a
+`cluster` module to fork processes (using `child_process.fork` under the hood)
+to allow for running multiple instances of an app.
+
+```javascript
+const cluster = require('cluster');
+const os = require('os');
+
+if (cluster.master) {
+  // do work that will only be done on one core
+
+  // create a fork for other processes to be split across all cores for all
+  // available cores
+  Array.from({length: os.cpus().length}).map(() => {
+    cluster.fork()
+  })
+} else {
+  // run processes on each fork
+}
 ```
