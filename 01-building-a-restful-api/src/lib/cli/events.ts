@@ -1,3 +1,4 @@
+import {spawn} from 'child_process';
 import EventEmitter from 'events';
 import * as os from 'os';
 import * as v8 from 'v8';
@@ -154,16 +155,31 @@ const handleMoreCheckInfo: EventListener = async cmd => {
 };
 
 const handleListLogs: EventListener = async () => {
-  try {
-    const logs = await logsLib.list(true);
-    const compressedLogs = logs.filter(log => !/\.log$/.test(log));
+  // spawn will execute in the current working directory, i.e. where the current
+  // process was started
+  const ls = spawn('ls', ['./.logs']);
+
+  ls.stdout.on('data', data => {
+    const lines = data.toString();
+    const logs: string[] = lines.split('\n');
+    const compressedLogs = logs
+      .filter(log => !/\.log$/.test(log))
+      .filter(Boolean);
 
     // tslint:disable-next-line
     console.dir(compressedLogs, {colors: true});
-  } catch (err) {
-    // tslint:disable-next-line
-    console.log(err);
-  }
+  });
+
+  // try {
+  //   const logs = await logsLib.list(true);
+  //   const compressedLogs = logs.filter(log => !/\.log$/.test(log));
+
+  //   // tslint:disable-next-line
+  //   console.dir(compressedLogs, {colors: true});
+  // } catch (err) {
+  //   // tslint:disable-next-line
+  //   console.log(err);
+  // }
 };
 
 const handleMoreLogInfo: EventListener = async cmd => {
