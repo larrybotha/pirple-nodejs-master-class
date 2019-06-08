@@ -450,3 +450,6 @@ This can be done with the `spawn`, `fork`, or `exec` commands.
 
 If `fork` and `spawn` are not provided an options object with a `cwd` property,
 the current working directory of the running process will be used.
+
+Using a child process isn't always more performant than using the existing
+application to do the same work.
