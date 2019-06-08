@@ -30,6 +30,7 @@
 - [DNS validating urls](#dns-validating-urls)
 - [Performance measurement](#performance-measurement)
 - [Clusters](#clusters)
+- [Child processes](#child-processes)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -434,3 +435,18 @@ if (cluster.master) {
   // run processes on each fork
 }
 ```
+
+
+## Child processes
+
+A child process can be started from with an existing process (i.e. running app).
+This can be done with the `spawn`, `fork`, or `exec` commands.
+
+- `exec` - executes a command, returning a buffer containing the output of the
+    command
+- `spawn` - creates a new process with a readable stream
+- `fork` - specialised `spawn` which allows messages to be sent between the
+    child process and parent process
+
+If `fork` and `spawn` are not provided an options object with a `cwd` property,
+the current working directory of the running process will be used.
