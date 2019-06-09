@@ -5,6 +5,7 @@
 **Table of Contents**
 
 - [`http2`](#http2)
+- [`vm`](#vm)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -63,4 +64,27 @@ req.on('data', chunk => str += chunk);
 req.on('end', () => console.log(str))
 
 req.end();
+```
+
+## `vm`
+
+Node's `vm` module allows code to be run, insecurely, in a V8 virtual machine.
+
+A context, or sandbox, can be provided for a `vm` to run in.
+
+```javascript
+const vm = require('vm');
+
+const context = {
+  foo: 2,
+};
+
+const script = new vm.Script(`
+  foo = foo * 2;
+`);
+
+script.runInNewContext(context);
+
+console.log(context);
+// => {foo: 4}
 ```
