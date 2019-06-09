@@ -31,6 +31,7 @@
 - [Performance measurement](#performance-measurement)
 - [Clusters](#clusters)
 - [Child processes](#child-processes)
+- [Deprecated APIs](#deprecated-apis)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -453,3 +454,8 @@ the current working directory of the running process will be used.
 
 Using a child process isn't always more performant than using the existing
 application to do the same work.
+
+## Deprecated APIs
+
+A list of deprecated APIs is available in the documentation that lists reasons
+and alternatives for APIs that should no longer be used.
