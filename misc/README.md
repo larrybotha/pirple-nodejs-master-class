@@ -4,11 +4,11 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [HTTP2](#http2)
+- [`http2`](#http2)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## HTTP2
+## `http2`
 
 [http2/server.ts]('./http2/server.ts')
 
@@ -22,3 +22,45 @@ client using `http2` needs to also process data using streams.
 
 This is because information can be passed in both directions, from client to
 server, using streams.
+
+```javascript
+const http2 = require('http2')
+
+const port = 6000;
+
+/*
+ * http2 server
+ */
+const server = http2.createServer();
+
+server.on('stream', (stream, headers) => {
+  stream.respond({
+    status: 200,
+    'content-type': 'application/json'
+  });
+
+  stream.end(JSON.stringify({foo: 'bar'}))
+})
+
+server.listen(port);
+
+/*
+ * http2 client
+ */
+const client = http2.connect(`http://localhost:${port}`);
+/*
+ * configure request headers
+ */
+const req = client.request({
+  /*
+   * set the path of the request
+   */
+  ':path': '/',
+});
+let str = '';
+
+req.on('data', chunk => str += chunk);
+req.on('end', () => console.log(str))
+
+req.end();
+```
