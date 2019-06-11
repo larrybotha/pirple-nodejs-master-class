@@ -6,6 +6,7 @@
 
 - [`http2`](#http2)
 - [`vm`](#vm)
+- [UDP / Datagram](#udp--datagram)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -68,6 +69,8 @@ req.end();
 
 ## `vm`
 
+[vm/index.ts]('./vm/index.ts')
+
 Node's `vm` module allows code to be run, insecurely, in a V8 virtual machine.
 
 A context, or sandbox, can be provided for a `vm` to run in.
@@ -87,4 +90,45 @@ script.runInNewContext(context);
 
 console.log(context);
 // => {foo: 4}
+```
+
+## UDP / Datagram
+
+[udp/server.ts]('./udp/server.ts')
+
+UDP allows messages to be sent and packets to be dropped, in contrast to TCP
+which waits for all packets or re-requests failed packets.
+
+UDP is most useful in streaming services. It can be configured to communicate
+via IPv4 if a socket is created with `udp4`, else IPv6 if configured with
+`udp6`.
+
+UDP doesn't distinguish between client and server, so the same interface is used
+to both send and receive messages:
+
+```javascript
+const dgram = require('dgram');
+
+/*
+ * server
+ */
+const server = dgram.createSocket('udp4');
+
+server.on('message', (msgBuf, sender) => {
+  const msg = msgBuf.toString();
+
+  console.log(msg);
+});
+
+server.bind(6000);
+
+/*
+ * client
+ */
+const client = dgram.createSocket('udp4');
+const buf = Buffer.from('my message');
+
+client.send(buf, 6000, 'localhost', err => {
+  client.close();
+})
 ```
