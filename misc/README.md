@@ -7,6 +7,7 @@
 - [`http2`](#http2)
 - [`vm`](#vm)
 - [UDP / Datagram](#udp--datagram)
+- [`net`](#net)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -132,3 +133,15 @@ client.send(buf, 6000, 'localhost', err => {
   client.close();
 })
 ```
+
+## `net`
+
+[net/server.ts]('./net/server.ts')
+
+[net/client.ts]('./net/client.ts')
+
+Node is not often used for low-level networking applications, but is a good fit,
+because it exposes TCP to you.
+
+Whenever you see `net` in the context of NodeJs, you can ne confident you're
+looking at TCP.
