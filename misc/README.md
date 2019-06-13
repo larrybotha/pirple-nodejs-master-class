@@ -8,6 +8,7 @@
 - [`vm`](#vm)
 - [UDP / Datagram](#udp--datagram)
 - [`net`](#net)
+- [TLS / SSL](#tls--ssl)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -145,3 +146,15 @@ because it exposes TCP to you.
 
 Whenever you see `net` in the context of NodeJs, you can ne confident you're
 looking at TCP.
+
+## TLS / SSL
+
+[tls-ssl/server.ts]('./tls-ssl/server.ts')
+
+[tls-ssl/client.ts]('./-sssltl/client.ts')
+
+TLS / SSL is the equivalent for `net` as `https` is to `http`.
+
+Client and server are created in the same way as in the `net` module, with the
+exception of passing in an options object with cert properties when creating a
+server.
