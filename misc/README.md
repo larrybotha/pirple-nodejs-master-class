@@ -9,6 +9,7 @@
 - [UDP / Datagram](#udp--datagram)
 - [`net`](#net)
 - [TLS / SSL](#tls--ssl)
+- [REPL](#repl)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -158,3 +159,20 @@ TLS / SSL is the equivalent for `net` as `https` is to `http`.
 Client and server are created in the same way as in the `net` module, with the
 exception of passing in an options object with cert properties when creating a
 server.
+
+## REPL
+
+[repl/index.ts]('./repl/index.ts')
+
+Instead of using `readline` to get user input, Node has alreay abstracted all
+the work in creating a REPL away by providing the `repl` module:
+
+```javascript
+const repl = require('repl');
+
+repl.start({
+  eval: str => {
+    console.log(`you entered: ${str}`);
+  }
+})
+```
