@@ -10,6 +10,7 @@
 - [`net`](#net)
 - [TLS / SSL](#tls--ssl)
 - [REPL](#repl)
+- [Async hooks](#async-hooks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -176,3 +177,5 @@ repl.start({
   }
 })
 ```
+
+## Async hooks
